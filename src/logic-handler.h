@@ -7,7 +7,7 @@
  * 
  * Used to identify the current state of the Logic Handler.
  */
-enum State {
+enum LogicState {
     IDLE,           // Idle State - No functions being executed
     HOMING,         // Homing State - Stepper motor driving to home position
     COUNTING,       // Counting State - IR sensor counting capsules 
@@ -28,7 +28,7 @@ class LogicHandler {
         Sensor& sensor;                 // IR Sensor object
         StepperMotor& motor;            // Stepper Motor object
 
-        volatile State currentState;             // Current Logic Handler State
+        volatile LogicState currentState;             // Current Logic Handler State
         int _limit;                     // Bulk-counting limit
         long _holdPosition;             // Stepper Motor Hold Position (steps)
         long _releasePosition;          // Stepper Motor Release Position (steps)
@@ -42,7 +42,7 @@ class LogicHandler {
         void begin();
         void home();
         bool update();
-        void setState(State);
+        void setState(LogicState);
         void setManual();
         void setAuto();
         void setMotorSpeed(float);

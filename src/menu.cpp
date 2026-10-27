@@ -12,8 +12,9 @@ Menu::Menu(Display& d, Joystick& j, Settings& s, LogicHandler& l):
     settings(s),
     logicHandler(l),
     screen(Screen::LOGO),
-    _logicState(LogicState::IDLE),
+    _menuState(MenuState::IDLE),
     _idx(0),
+    _overflowMainMin(0),
     _bulkSelectIndex(0),
     _overflowBulkMin(0),
     _overflowBulkIndex(0),
@@ -103,7 +104,7 @@ void Menu::update() {
     }
 }
 
-LogicState Menu::getLogicState() { return _logicState; }
+MenuState Menu::getMenuState() { return _menuState; }
 
 /**
  * Menu Handle Transition Function
@@ -197,6 +198,13 @@ void Menu::updateCountScreen() {
  * screens, like the bulk options and the settings.
  */
 void Menu::handleSelectionOverflow() {
+    // Handle Main Index Overflow
+    if (_overflowMainMin > 0 && _idx < _overflowMainMin) {
+        _overflowMainMin--;
+    } else if (_idx >= MAX_DISPLAYED_BULK_SELECT && _overflowMainMin < MENU_COUNT - MAX_DISPLAYED_BULK_SELECT) {
+        _overflowMainMin++;
+    }
+
     // Handle Bulk Index Overflow
     if (_overflowBulkMin > 0 && _bulkSelectIndex < _overflowBulkMin) {
         _overflowBulkMin--;
@@ -268,13 +276,16 @@ void Menu::handleMainMenu(Direction dir) {
         if (_idx < 0) {
             _idx = MENU_COUNT - 1;
         }
+        handleSelectionOverflow();
     }
     // Handle user navigating down
     else if (dir == Direction::DOWN) {
         _idx++;
         if (_idx >= MENU_COUNT) {
             _idx = 0;
+            _overflowMainMin = 0;
         }
+        handleSelectionOverflow();
     }
     // Handle user making a selection
     else if (dir == Direction::RIGHT) {
@@ -296,18 +307,26 @@ void Menu::handleMainMenu(Direction dir) {
             case 3:
                 screen = Screen::MANUAL;
                 break;
-            // 4th index: Settings Screen
+            // 4th index: Home Motor Screen
             case 4:
+                screen = Screen::HOME;
+                break;
+            // 5th index: Settings Screen
+            case 5:
                 screen = Screen::SETTINGS;
                 break;
         }
 
         if (screen == Screen::MANUAL) {
             logicHandler.setManual();
-            _logicState = LogicState::MANUAL;
+            _menuState = MenuState::MANUAL;
+        } else if (screen == Screen::HOME) {
+            // TODO: handle homing
+            logicHandler.setAuto();
+            _menuState = MenuState::HOMING;
         } else {
             logicHandler.setAuto();
-            _logicState = LogicState::IDLE;
+            _menuState = MenuState::IDLE;
         }
     }
 }
@@ -442,6 +461,15 @@ void Menu::handleManual(Direction dir) {
         _stopped = true;
         _forwards = true;
         logicHandler.setMotorSpeed(0);
+        screen = Screen::MAIN;
+    }
+}
+
+void Menu::handleHome(Direction dir) {
+    if (dir == Direction::RIGHT) {
+        // TODO: Handle homing
+    } else if (dir == Direction::LEFT) {
+        // TODO: stop homing
         screen = Screen::MAIN;
     }
 }
@@ -778,6 +806,9 @@ void Menu::draw() {
         case Screen::MANUAL:
             drawManualScreen(u8g2);
             break;
+        case Screen::HOME:
+            drawHomeScreen(u8g2);
+            break;
         case Screen::SETTINGS:
             drawSettingsScreen(u8g2);
             break;
@@ -802,9 +833,12 @@ void Menu::drawLogoScreen(U8G2& u8g2) {
 void Menu::drawMainMenuScreen(U8G2& u8g2) {
     u8g2.setFont(u8g2_font_6x10_tf);
     u8g2.drawStr(0, 10, "Main Menu");
+    int limit = MAX_DISPLAYED_BULK_SELECT + _overflowMainMin;
 
-    for (int i = 0; i < MENU_COUNT; i++) {
-        int y = 22 + i * 10;
+    // for (int i = 0; i < MENU_COUNT; i++) {
+    for (int i = _overflowMainMin; i < limit; i++) {
+        // int y = 22 + i * 10;
+        int y = 22 + (i - _overflowMainMin) * 10;
         if (i == _idx) {
             u8g2.drawStr(2, y, ">");
             u8g2.drawFrame(10, y - 8, 110, 10);
@@ -896,8 +930,19 @@ void Menu::drawManualScreen(U8G2& u8g2) {
         u8g2.drawStr(10, 42, "Backwards");
     }
     
+    // TODO: reimplement help message
     // u8g2.setFont(u8g2_font_6x10_tf);
     // drawHelpMessage(u8g2);
+}
+
+void Menu::drawHomeScreen(U8G2& u8g2) {
+    u8g2.setFont(u8g2_font_6x10_tf);
+    u8g2.drawStr(0, 10, "Home Motor:");
+
+    // TODO: add homing message
+    
+    u8g2.setFont(u8g2_font_6x10_tf);
+    drawHelpMessage(u8g2);
 }
 
 void Menu::drawSettingsScreen(U8G2& u8g2) {

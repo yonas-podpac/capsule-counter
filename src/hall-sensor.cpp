@@ -13,8 +13,7 @@ HallSensor::HallSensor() {}
  * Used in the stepper-motor.cpp's begin function, this function is
  * used for setting the predefined sensor pin as an Input-Pullup.
  */
-// void HallSensor::begin() { pinMode(HALL_PIN, INPUT_PULLUP); }
-void HallSensor::begin() {}
+void HallSensor::begin() { pinMode(HALL_PIN, INPUT_PULLUP); }
 
 /**
  * Hall Sensor Is Open Function
@@ -25,9 +24,8 @@ void HallSensor::begin() {}
  * @returns true if reading above sensitivity, false otherwise
  */
 bool HallSensor::isOpen() {
-    // TODO: handle analog read on second core or migrate to first core
-    // uint16_t val = analogRead(HALL_PIN);
-    // return val > _sensitivity;
+    uint16_t val = analogRead(HALL_PIN);
+    return val > _sensitivity;
     return true;
 }
 

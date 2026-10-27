@@ -9,7 +9,7 @@
  * setting the last-hold tracker to 0 milliseconds.
  */
 LogicHandler::LogicHandler(Sensor& s, StepperMotor& m) :
-    currentState(State::IDLE),
+    currentState(LogicState::IDLE),
     sensor(s),
     motor(m),
     _limit(0),
@@ -23,7 +23,7 @@ LogicHandler::LogicHandler(Sensor& s, StepperMotor& m) :
  * and to home the stepper motor.
  */
 void LogicHandler::begin() {
-    currentState = State::IDLE;
+    currentState = LogicState::IDLE;
     sensor.begin();
     motor.begin();
     // TODO: handle analog read on second core or migrate to first core
@@ -37,7 +37,7 @@ void LogicHandler::begin() {
  */
 void LogicHandler::home() {
     // Update the State to Homing
-    currentState = State::HOMING;
+    currentState = LogicState::HOMING;
     motor.home();
 }
 
@@ -48,7 +48,7 @@ void LogicHandler::home() {
  */
 void LogicHandler::hold() {
     // Update the State to Holding
-    currentState = State::HOLDING;
+    currentState = LogicState::HOLDING;
     motor.moveTo(_holdPosition);
 }
 
@@ -59,7 +59,7 @@ void LogicHandler::hold() {
  */
 void LogicHandler::release() {
     // Update the State to Releasing
-    currentState = State::RELEASING;
+    currentState = LogicState::RELEASING;
     motor.moveTo(_releasePosition);
 }
 
@@ -81,14 +81,14 @@ bool LogicHandler::update() {
     // Logic Functionality changes depending on Current State
     switch (currentState) {
         // Handle Homing State
-        case State::HOMING:
+        case LogicState::HOMING:
             // When homing is complete, set state to Idle
             if (!motorBusy) {
-                currentState = State::IDLE;
+                currentState = LogicState::IDLE;
             }
             break;
         // Handle Counting State
-        case State::COUNTING:
+        case LogicState::COUNTING:
             // When Count reaches Bulk-Packing Limit, drive
             // stepper motor to Hold Position
             if (sensor.getCount() >= _limit) {
@@ -97,7 +97,7 @@ bool LogicHandler::update() {
             }
             break;
         // Handle Holding State
-        case State::HOLDING:
+        case LogicState::HOLDING:
             // Check how long stepper motor has been holding,
             // drive to release position when held for x-time
             now = millis();
@@ -107,14 +107,14 @@ bool LogicHandler::update() {
             }
             break;
         // Handle Releasing State
-        case State::RELEASING:
+        case LogicState::RELEASING:
             // When releasing is complete, resume counting state
             if (!motorBusy) {
-                currentState = State::COUNTING;
+                currentState = LogicState::COUNTING;
             }
             break;
         // Handle Manula State
-        case State::MANUAL:
+        case LogicState::MANUAL:
             motor.runSpeed();
             break;
         // todo: implement error state
@@ -122,7 +122,7 @@ bool LogicHandler::update() {
     return motorBusy;
 }
 
-void LogicHandler::setState(State state) { currentState = state; }
+void LogicHandler::setState(LogicState state) { currentState = state; }
 
 void LogicHandler::setManual() { motor.enable(); }
 

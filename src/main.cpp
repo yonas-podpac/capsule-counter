@@ -29,13 +29,13 @@ void logicHandlingTask(void * pvParameters) {
 
   for (;;) {
     if (xQueueReceive(motorQueue, &rxCmd, 0) == pdTRUE) {
-      if (rxCmd == MotorCommand::SET_IDLE) logicHandler.setState(State::IDLE);
-      if (rxCmd == MotorCommand::SET_HOMING) logicHandler.setState(State::HOMING);
-      if (rxCmd == MotorCommand::SET_COUNTING) logicHandler.setState(State::COUNTING);
-      if (rxCmd == MotorCommand::SET_HOLDING) logicHandler.setState(State::HOLDING);
-      if (rxCmd == MotorCommand::SET_RELEASING) logicHandler.setState(State::RELEASING);
-      if (rxCmd == MotorCommand::SET_MANUAL) logicHandler.setState(State::MANUAL);
-      if (rxCmd == MotorCommand::SET_ERROR) logicHandler.setState(State::ERROR);
+      if (rxCmd == MotorCommand::SET_IDLE) logicHandler.setState(LogicState::IDLE);
+      if (rxCmd == MotorCommand::SET_HOMING) logicHandler.setState(LogicState::HOMING);
+      if (rxCmd == MotorCommand::SET_COUNTING) logicHandler.setState(LogicState::COUNTING);
+      if (rxCmd == MotorCommand::SET_HOLDING) logicHandler.setState(LogicState::HOLDING);
+      if (rxCmd == MotorCommand::SET_RELEASING) logicHandler.setState(LogicState::RELEASING);
+      if (rxCmd == MotorCommand::SET_MANUAL) logicHandler.setState(LogicState::MANUAL);
+      if (rxCmd == MotorCommand::SET_ERROR) logicHandler.setState(LogicState::ERROR);
     }
     if (logicHandler.update()) {
       vTaskDelay(pdMS_TO_TICKS(10));
@@ -47,19 +47,19 @@ void logicHandlingTask(void * pvParameters) {
 void displayUpdatingTask(void * pvParameters) {
   Serial.print("Display Task Running on Core ");
   Serial.println(xPortGetCoreID());
-  LogicState lState;
+  MenuState mState;
   MotorCommand cmd;
   
   for (;;) {
     menu.update();
-    lState = menu.getLogicState();
-    if (lState == LogicState::IDLE) cmd = MotorCommand::SET_IDLE;
-    if (lState == LogicState::HOMING) cmd = MotorCommand::SET_HOMING;
-    if (lState == LogicState::COUNTING) cmd = MotorCommand::SET_COUNTING;
-    if (lState == LogicState::HOLDING) cmd = MotorCommand::SET_HOLDING;
-    if (lState == LogicState::RELEASING) cmd = MotorCommand::SET_RELEASING;
-    if (lState == LogicState::MANUAL) cmd = MotorCommand::SET_MANUAL;
-    if (lState == LogicState::ERROR) cmd = MotorCommand::SET_ERROR;
+    mState = menu.getMenuState();
+    if (mState == MenuState::IDLE) cmd = MotorCommand::SET_IDLE;
+    if (mState == MenuState::HOMING) cmd = MotorCommand::SET_HOMING;
+    if (mState == MenuState::COUNTING) cmd = MotorCommand::SET_COUNTING;
+    if (mState == MenuState::HOLDING) cmd = MotorCommand::SET_HOLDING;
+    if (mState == MenuState::RELEASING) cmd = MotorCommand::SET_RELEASING;
+    if (mState == MenuState::MANUAL) cmd = MotorCommand::SET_MANUAL;
+    if (mState == MenuState::ERROR) cmd = MotorCommand::SET_ERROR;
     xQueueSend(motorQueue, &cmd, portMAX_DELAY);
     delay(1);
   }

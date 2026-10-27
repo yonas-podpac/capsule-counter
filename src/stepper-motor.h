@@ -16,7 +16,7 @@
 class StepperMotor {
     private:
         AccelStepper _stepper;      // Stepper Motor Control Library
-        HallSensor _sensor;         // Hall-Effect Sensor for Homing
+        HallSensor _prox_sensor;    // Hall-Effect Sensor for Homing
         bool busy;                  // True if motor is driving, false otherwise
         float _currentSpeed;
         unsigned long _stepInterval;

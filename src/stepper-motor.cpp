@@ -9,7 +9,7 @@
  */
 StepperMotor::StepperMotor():
     _stepper(1, STEPPIN, DIRPIN),
-    _sensor(),
+    _prox_sensor(),
     busy(false) {}
 
 /**
@@ -26,7 +26,7 @@ void StepperMotor::begin() {
     disable();
 
     // Initialise Hall Sensor
-    _sensor.begin();
+    _prox_sensor.begin();
 }
 
 /**
@@ -118,7 +118,7 @@ void StepperMotor::home() {
     // 1. Approach Sensor
     // _stepper.setSpeed(-300);
     _stepper.moveTo(-100000);
-    while(_sensor.isOpen()) {
+    while(_prox_sensor.isOpen()) {
         _stepper.run();
     }
 
@@ -213,10 +213,7 @@ void StepperMotor::setMaxSpeed(float ms) { _stepper.setMaxSpeed(ms); }
  * 
  * @param a motor acceleration (steps/second^2)
  */
-void StepperMotor::setAcceleration(float a) { 
-    Serial.print("Stepper Motor Acceleration Set to: ");
-    Serial.println(a);
-    _stepper.setAcceleration(a); }
+void StepperMotor::setAcceleration(float a) { _stepper.setAcceleration(a); }
 
 /**
  * Stepper Motor Set Hall Sensor Sensitivity Function
@@ -225,4 +222,4 @@ void StepperMotor::setAcceleration(float a) {
  * 
  * @param s hall sensor sensitivity
  */
-void StepperMotor::setHallSensorSensitivity(int s) { _sensor.setSensitivity(s); }
+void StepperMotor::setHallSensorSensitivity(int s) { _prox_sensor.setSensitivity(s); }

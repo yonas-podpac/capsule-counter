@@ -4,7 +4,7 @@
 #include "settings.h"
 #include "logic-handler.h"
 
-#define MENU_COUNT 5                                    // Number of Menu Items
+#define MENU_COUNT 6                                    // Number of Menu Items
 #define SETTING_COUNT 9                                 // Number of Setting Items
 #define SCREEN_COUNT MENU_COUNT + SETTING_COUNT + 2     // Screen Count, i.e. MENU_COUNT + SETTING_COUNT + 2 (logo and main menu)
 #define MAX_DISPLAYED_BULK_SELECT 4                     // Maximum number of Bulk-select options
@@ -23,6 +23,7 @@ enum class Screen{
     SELECT,                         // Select Screen - Bulk options selection on display
     NEW,                            // New Screen - Create new bulk option
     MANUAL,                         // Manual Screen - Drive Motor
+    HOME,                           // Homing Screen - Home Stepper Motor
     SETTINGS,                       // Settings Screen - Settings items on display
     HOLD_SETTING,                   // TODO: write description for this
     JOYSTICK_SETTING,               // TODO: write description for this
@@ -37,7 +38,7 @@ enum class Screen{
     FACTORY_RESET                   // Factory Reset - Set all settings to default values
 };
 
-enum class LogicState {
+enum class MenuState {
     IDLE,           // Idle State - No functions being executed
     HOMING,         // Homing State - Stepper motor driving to home position
     COUNTING,       // Counting State - IR sensor counting capsules 
@@ -61,9 +62,10 @@ class Menu {
         LogicHandler logicHandler;                  // Logic Handler object
         Screen screen;                              // Current Screen
 
-        LogicState _logicState;
+        MenuState _menuState;
 
         int _idx;                                   // Main Menu Index
+        int _overflowMainMin;                       // Overflow Minimum for Main Options
         int _bulkSelectIndex;                       // Bulk Select Index
         int _overflowBulkMin;                       // Overflow Minimum for Bulk Options
         int _overflowBulkIndex;                     // Overflow Index for Bulk Options
@@ -79,7 +81,8 @@ class Menu {
             "2. Bulk Select",                       // Bulk-Packing Options Menu Message
             "3. New Bulk Packs",                    // Assign new Bulk-Packing Option Menu Message
             "4. Manual Drive",                      // Manually Drive Motor
-            "5. Settings"                           // Settings Menu Message
+            "5. Home Motor",                        // Home Motor
+            "6. Settings"                           // Settings Menu Message
         };
 
         // Settings Items
@@ -110,6 +113,7 @@ class Menu {
             {"Up/Down = Select", "Right = Confirm", "Left = Main Menu"},
             {"Up/Down = Change", "Right = Confirm", "Left = Cancel"},
             {"Up = Forward", "Down = Backward", "Left = Cancel"},
+            {"Right = Home Motor", "Left = Main Menu", ""},
             {"Up/Down = Select", "Right = Confirm", "Left = Main Menu"},
             {"Up/Down = Change", "Right = Confirm", "Left = Settings"},
             {"Up/Down = Change", "Right = Confirm", "Left = Settings"},
@@ -152,6 +156,7 @@ class Menu {
         void handleSelection(Direction);
         void handleNewCount(Direction);
         void handleManual(Direction);
+        void handleHome(Direction);
         void handleSettings(Direction);
         void handleHoldPosSetting(Direction);
         void handleReleasePosSetting(Direction);
@@ -171,6 +176,7 @@ class Menu {
         void drawSelectionScreen(U8G2&);
         void drawNewCountScreen(U8G2&);
         void drawManualScreen(U8G2&);
+        void drawHomeScreen(U8G2&);
         void drawSettingsScreen(U8G2&);
         void drawHoldPosSettingScreen(U8G2&);
         void drawReleasePosSettingScreen(U8G2&);
@@ -189,7 +195,7 @@ class Menu {
         Menu(Display&, Joystick&, Settings&, LogicHandler&);
         void begin();
         void update();
-        LogicState getLogicState();
+        MenuState getMenuState();
         int getContinuousCountCallback();
         int* getBulkCountCallback();
 };
