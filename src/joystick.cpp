@@ -10,6 +10,11 @@
 Joystick::Joystick() {
     pinMode(LR_PIN, INPUT);
     pinMode(UD_PIN, INPUT);
+    // analogReadResolution(12);
+    // calibrateCentre(SAMPLE_SIZE);
+}
+
+void Joystick::begin() {
     analogReadResolution(12);
     calibrateCentre(SAMPLE_SIZE);
 }

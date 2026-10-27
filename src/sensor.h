@@ -14,10 +14,13 @@ class Sensor {
         int _count;                         // Tracker for capsule count
         int _lastState;                     // Previous state of sensor
         unsigned long _last_trigger_us;     // Tracker for timing in microseconds
+        bool _active;
         bool isTriggered();
     public:
         explicit Sensor();
         void begin();
+        void activate();
+        void deactivate();
         void update();
         int getCount();
         void reset();

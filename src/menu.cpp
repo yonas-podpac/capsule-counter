@@ -51,6 +51,9 @@ Menu::Menu(Display& d, Joystick& j, Settings& s, LogicHandler& l):
  * relevant classes, as well as drawing the logo.
  */
 void Menu::begin() {
+    // Initialise Joystick
+    joystick.begin();
+
     // Extract Bulk Option Variables from Settings
     settings.getBulkOptions(_bulkOptions);
     _bulkOptionsCount = settings.getBulkOptionCount();
@@ -63,9 +66,6 @@ void Menu::begin() {
     logicHandler.setMotorMaxSpeed(settings.getMotorMaxSpeed());
     logicHandler.setMotorAcceleration(settings.getMotorAcceleration());
     logicHandler.setHallSensitivity(settings.getHallSensitivity());
-
-    logicHandler.setMotorMaxSpeed(100);
-    // logicHandler.setMotorAcceleration(5000);
 
     // Extract Help Message Update Time from Settings
     _helpTime = settings.getHelpTime();

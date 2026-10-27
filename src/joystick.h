@@ -36,6 +36,7 @@ class Joystick {
         int applyDeadzone(int, int);
     public:
         Joystick();
+        void begin();
         void calibrateCentre(size_t);
         void setDeadzone(int);
         void setThreshold(int);

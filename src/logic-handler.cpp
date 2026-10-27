@@ -191,11 +191,7 @@ void LogicHandler::setMotorPulseWidth(int pw) { motor.setPulseWidth(pw); }
  * 
  * @param s stepper motor maximum speed (steps/second)
  */
-void LogicHandler::setMotorMaxSpeed(float s) {
-    motor.setMaxSpeed(s);
-    Serial.print("Stepper Motor Max Speed set to ");
-    Serial.println(s);
-}
+void LogicHandler::setMotorMaxSpeed(float s) { motor.setMaxSpeed(s); }
 
 /**
  * Logic Handler Set Motor Acceleration Function

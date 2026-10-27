@@ -3,9 +3,9 @@
 TaskHandle_t sensorTask;
 TaskHandle_t displayTask;
 Display display;
+Settings settings;
 Joystick joystick;
 Sensor sensor;
-Settings settings;
 StepperMotor motor;
 LogicHandler logicHandler(sensor, motor);
 Menu menu(display, joystick, settings, logicHandler);
@@ -42,14 +42,6 @@ void logicHandlingTask(void * pvParameters) {
     }
     vTaskDelay(1);
   }
-  //   sensor.update();
-  //   if (!motor.update()) {
-  //     // When motor isn't moving, give the CPU a longer break
-  //     vTaskDelay(pdMS_TO_TICKS(10));
-  //   }
-  //   // Yield enough control for IDLE task to reset the watchdog
-  //   vTaskDelay(1);
-  // }
 }
 
 void displayUpdatingTask(void * pvParameters) {
@@ -68,11 +60,6 @@ void displayUpdatingTask(void * pvParameters) {
     if (lState == LogicState::RELEASING) cmd = MotorCommand::SET_RELEASING;
     if (lState == LogicState::MANUAL) cmd = MotorCommand::SET_MANUAL;
     if (lState == LogicState::ERROR) cmd = MotorCommand::SET_ERROR;
-    // if (menu.getLogicState() == LogicState::MANUAL) {
-    //   Serial.println("Logic State changed motor setting to manual");
-    //   MotorCommand cmd = MotorCommand::SET_MANUAL;
-    //   xQueueSend(motorQueue, &cmd, portMAX_DELAY);
-    // }
     xQueueSend(motorQueue, &cmd, portMAX_DELAY);
     delay(1);
   }
@@ -82,7 +69,6 @@ void setup() {
   Serial.begin(115200);
   motorQueue = xQueueCreate(10, sizeof(MotorCommand));
   display.begin();
-  // sensor.begin();
   settings.begin();
   logicHandler.begin();
   menu.begin();
@@ -106,13 +92,6 @@ void setup() {
     1
   );
   delay(500);
-  // motor.begin();
-  // motor.moveTo(2000);
-  // motor.home();
 }
 
-void loop() {
-  // sensor.update();
-  // menu.update();
-  // motor.update();
-}
+void loop() {}

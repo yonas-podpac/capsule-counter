@@ -12,7 +12,8 @@ Sensor* Sensor::instance = nullptr;
 Sensor::Sensor() :
     _count(0),
     _lastState(-1),
-    _last_trigger_us(0) {}
+    _last_trigger_us(0),
+    _active(false) {}
 
 /**
  * Sensor Begin Function
@@ -25,6 +26,10 @@ void Sensor::begin() {
     instance = this;
     pinMode(SENSOR_PIN, INPUT);
 }
+
+void Sensor::activate() { _active = true; }
+
+void Sensor::deactivate() { _active = false; }
 
 /**
  * Sensor Is Triggered Function
@@ -63,7 +68,7 @@ void Sensor::update() {
     if (now - _last_trigger_us > SENSOR_INTERVAL_US) {
         _last_trigger_us = now;
         // Increment if sensor is triggered
-        if (isTriggered()) {
+        if (isTriggered() && _active) {
             _count++;
             Serial.print("Count: ");
             Serial.println(_count);
