@@ -17,7 +17,7 @@
 #define MOTOR_ACCELERATION_KEY "accel-key"          // Motor Acceleration key name
 #define DEFAULT_MOTOR_ACCELERATION 200              // Default Motor Acceleration
 #define HALL_SENSITIVITY_KEY "sensitivity-key"      // Hall Sensor Sensitivity key name
-#define DEFAULT_HALL_SENSITIVITY 2000               // Default Hall Sensor Sensitivity
+#define DEFAULT_HALL_SENSITIVITY 1000               // Default Hall Sensor Sensitivity
 #define HELP_TIME_KEY "help-time"                   // Help Message Cycle Time key name
 #define DEFAULT_HELP_TIME 2000                      // Default Help Message Cycle Time
 

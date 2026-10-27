@@ -37,31 +37,31 @@ void LogicHandler::begin() {
  */
 void LogicHandler::home() {
     // Update the State to Homing
-    currentState = LogicState::HOMING;
+    // currentState = LogicState::HOMING;
     motor.home();
 }
 
-/**
- * Logic Handler Hold Function
- * 
- * Used to drive the stepper motor to the hold position.
- */
-void LogicHandler::hold() {
-    // Update the State to Holding
-    currentState = LogicState::HOLDING;
-    motor.moveTo(_holdPosition);
-}
+// /**
+//  * Logic Handler Hold Function
+//  * 
+//  * Used to drive the stepper motor to the hold position.
+//  */
+// void LogicHandler::hold() {
+//     // Update the State to Holding
+//     currentState = LogicState::HOLDING;
+//     motor.moveTo(_holdPosition);
+// }
 
-/**
- * Logic Handler Release Function
- * 
- * Used to drive the stepper motor to the release position.
- */
-void LogicHandler::release() {
-    // Update the State to Releasing
-    currentState = LogicState::RELEASING;
-    motor.moveTo(_releasePosition);
-}
+// /**
+//  * Logic Handler Release Function
+//  * 
+//  * Used to drive the stepper motor to the release position.
+//  */
+// void LogicHandler::release() {
+//     // Update the State to Releasing
+//     currentState = LogicState::RELEASING;
+//     motor.moveTo(_releasePosition);
+// }
 
 /**
  * Logic Handler Update Function
@@ -93,7 +93,8 @@ bool LogicHandler::update() {
             // stepper motor to Hold Position
             if (sensor.getCount() >= _limit) {
                 _lastHoldMs = 0;
-                hold();
+                // hold();
+                // TODO: handle holding
             }
             break;
         // Handle Holding State
@@ -103,7 +104,8 @@ bool LogicHandler::update() {
             now = millis();
             if (now - _lastHoldMs >= _holdTime) {
                 sensor.reset();
-                release();
+                // release();
+                // TODO: handle releasing
             }
             break;
         // Handle Releasing State
@@ -123,6 +125,10 @@ bool LogicHandler::update() {
 }
 
 void LogicHandler::setState(LogicState state) { currentState = state; }
+
+LogicState LogicHandler::getState() { return currentState; }
+
+bool LogicHandler::homed() { return motor.isHomed(); }
 
 void LogicHandler::setManual() { motor.enable(); }
 

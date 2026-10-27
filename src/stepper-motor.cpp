@@ -10,7 +10,8 @@
 StepperMotor::StepperMotor():
     _stepper(1, STEPPIN, DIRPIN),
     _prox_sensor(),
-    busy(false) {}
+    busy(false),
+    _homed(false) {}
 
 /**
  * Stepper Motor Begin Function
@@ -84,6 +85,8 @@ void StepperMotor::moveRelative(long relativeSteps) {
  */
 bool StepperMotor::isBusy() { return busy; }
 
+bool StepperMotor::isHomed() { return _homed; }
+
 /**
  * Stepper Motor Update Function
  * 
@@ -105,6 +108,7 @@ void StepperMotor::update() {
         // disable(); // Only Uncomment if you don't need holding torque
         busy = false;
     }
+    // _prox_sensor.isOpen();
 }
 
 /**
@@ -117,7 +121,7 @@ void StepperMotor::home() {
     enable();
     // 1. Approach Sensor
     // _stepper.setSpeed(-300);
-    _stepper.moveTo(-100000);
+    _stepper.moveTo(100000);
     while(_prox_sensor.isOpen()) {
         _stepper.run();
     }
@@ -127,13 +131,14 @@ void StepperMotor::home() {
 
     // 3. Precision Back-off
     // Move away until sensor is clears, then stop
-    _stepper.moveTo(200);
-    while(_stepper.distanceToGo() != 0) {
+    _stepper.moveTo(-200);
+    while(!_prox_sensor.isOpen()) {
         _stepper.runSpeed();
     }
 
     // Final zeroing at the exact release point
     _stepper.setCurrentPosition(0);
+    _homed = true;
 }
 
 void StepperMotor::setSpeed(float speed) {

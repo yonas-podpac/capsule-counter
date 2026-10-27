@@ -25,8 +25,13 @@ void HallSensor::begin() { pinMode(HALL_PIN, INPUT_PULLUP); }
  */
 bool HallSensor::isOpen() {
     uint16_t val = analogRead(HALL_PIN);
+    if (val > _sensitivity) {
+        Serial.println("Proximity Sensor not Triggered!");
+    } else {
+        Serial.println("Proximity Sensor Triggered!");
+    }
     return val > _sensitivity;
-    return true;
+    // return true;
 }
 
 /**

@@ -144,6 +144,9 @@ void Menu::handleTransition() {
         case Screen::MANUAL:
             handleManual(dir);
             break;
+        case Screen::HOME:
+            handleHome(dir);
+            break;
         case Screen::SETTINGS:
             handleSettings(dir);
             break;
@@ -320,10 +323,6 @@ void Menu::handleMainMenu(Direction dir) {
         if (screen == Screen::MANUAL) {
             logicHandler.setManual();
             _menuState = MenuState::MANUAL;
-        } else if (screen == Screen::HOME) {
-            // TODO: handle homing
-            logicHandler.setAuto();
-            _menuState = MenuState::HOMING;
         } else {
             logicHandler.setAuto();
             _menuState = MenuState::IDLE;
@@ -448,11 +447,11 @@ void Menu::handleManual(Direction dir) {
     if (dir == Direction::UP) {
         _stopped = false;
         _forwards = true;
-        logicHandler.setMotorSpeed(400);
+        logicHandler.setMotorSpeed(-400);
     } else if (dir == Direction::DOWN) {
         _stopped = false;
         _forwards = false;
-        logicHandler.setMotorSpeed(-400);
+        logicHandler.setMotorSpeed(400);
     } else if (dir == Direction::NONE) {
         _stopped = true;
         _forwards = true;
@@ -467,7 +466,9 @@ void Menu::handleManual(Direction dir) {
 
 void Menu::handleHome(Direction dir) {
     if (dir == Direction::RIGHT) {
-        // TODO: Handle homing
+        logicHandler.setAuto();
+        _menuState = MenuState::HOMING;
+        logicHandler.home();
     } else if (dir == Direction::LEFT) {
         // TODO: stop homing
         screen = Screen::MAIN;
@@ -930,16 +931,22 @@ void Menu::drawManualScreen(U8G2& u8g2) {
         u8g2.drawStr(10, 42, "Backwards");
     }
     
-    // TODO: reimplement help message
-    // u8g2.setFont(u8g2_font_6x10_tf);
-    // drawHelpMessage(u8g2);
+    u8g2.setFont(u8g2_font_6x10_tf);
+    drawHelpMessage(u8g2);
 }
 
 void Menu::drawHomeScreen(U8G2& u8g2) {
     u8g2.setFont(u8g2_font_6x10_tf);
     u8g2.drawStr(0, 10, "Home Motor:");
 
-    // TODO: add homing message
+    u8g2.setFont(u8g2_font_logisoso16_tf);
+    if (logicHandler.getState() == LogicState::HOMING) {
+        u8g2.drawStr(10, 42, "Homing");
+    } else if (logicHandler.homed()) {
+        u8g2.drawStr(10, 42, "Homed");
+    } else {
+        u8g2.drawStr(10, 42, "Not Homed");
+    }
     
     u8g2.setFont(u8g2_font_6x10_tf);
     drawHelpMessage(u8g2);
@@ -1015,14 +1022,34 @@ int Menu::getScreenIndex(Screen s) {
             return 3;
         case Screen::NEW:
             return 4;
-        case Screen::SETTINGS:
+        case Screen::MANUAL:
             return 5;
-        case Screen::HOLD_SETTING:
+        case Screen::HOME:
             return 6;
-        case Screen::HELP_SETTING:
+        case Screen::SETTINGS:
             return 7;
-        case Screen::JOYSTICK_SETTING:
+        case Screen::HOLD_SETTING:
             return 8;
+        case Screen::JOYSTICK_SETTING:
+            return 9;
+        case Screen::HOLD_POS_SETTING:
+            return 10;
+        case Screen::RELEASE_POS_SETTING:
+            return 11;
+        case Screen::HOLD_TIME_SETTING:
+            return 12;
+        case Screen::MOTOR_PULSE_WIDTH_SETTING:
+            return 13;
+        case Screen::MOTOR_MAX_SPEED_SETTING:
+            return 14;
+        case Screen::MOTOR_ACCELERATION_SETTING:
+            return 15;
+        case Screen::HALL_SENSITIVITY_SETTING:
+            return 16;
+        case Screen::HELP_SETTING:
+            return 17;
+        case Screen::FACTORY_RESET:
+            return 18;
         default:
             return -1;
     }

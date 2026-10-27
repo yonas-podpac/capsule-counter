@@ -19,6 +19,7 @@ class StepperMotor {
         HallSensor _prox_sensor;    // Hall-Effect Sensor for Homing
         bool busy;                  // True if motor is driving, false otherwise
         float _currentSpeed;
+        bool _homed;
         unsigned long _stepInterval;
         unsigned long _lastStepTime;
         int _currentPosition;
@@ -28,6 +29,7 @@ class StepperMotor {
         void moveTo(long);
         void moveRelative(long);
         bool isBusy();
+        bool isHomed();
         void update();
         void enable();
         void disable();
