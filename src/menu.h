@@ -196,6 +196,7 @@ class Menu {
         void begin();
         void update();
         MenuState getMenuState();
+        int getBulkLimit();
         int getContinuousCountCallback();
         int* getBulkCountCallback();
 };

@@ -59,6 +59,9 @@ void StepperMotor::moveTo(long absoluteSteps) {
     enable();
     // Use AccelStepper moveTo function for Absolute Motion
     _stepper.moveTo(absoluteSteps);
+    Serial.print("Distance to Travel: ");
+    Serial.println(absoluteSteps);
+    busy = true;
 }
 
 /**
@@ -74,6 +77,7 @@ void StepperMotor::moveRelative(long relativeSteps) {
     enable();
     // Use AccelStepper move function for Relative Motion
     _stepper.move(relativeSteps);
+    busy = true;
 }
 
 /**
@@ -97,9 +101,14 @@ bool StepperMotor::isHomed() { return _homed; }
 void StepperMotor::update() {
     // Using the AccelStepper's distanceToGo function, check if
     // motor should be driven
+    long distanceToGo = _stepper.distanceToGo();
+    if (busy) {
+        Serial.print("Distance to go: ");
+        Serial.println(distanceToGo);
+    }
     if (_stepper.distanceToGo() != 0) {
+        Serial.println("Motor running");
         _stepper.run();
-        busy = true;
     }
 
     // Optional: Auto-disable power when target is reached to 

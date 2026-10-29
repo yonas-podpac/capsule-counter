@@ -35,33 +35,33 @@ void LogicHandler::begin() {
  * 
  * Used to home the stepper motor.
  */
-void LogicHandler::home() {
-    // Update the State to Homing
-    // currentState = LogicState::HOMING;
-    motor.home();
+void LogicHandler::home() { motor.home(); }
+
+/**
+ * Logic Handler Hold Function
+ * 
+ * Used to drive the stepper motor to the hold position.
+ */
+void LogicHandler::hold() {
+    // Update the State to Holding
+    currentState = LogicState::HOLDING;
+    Serial.print("Address of LogicHandler in task: ");
+    Serial.println((uint32_t)this, HEX);
+    Serial.print("Reading _holdPosition: ");
+    Serial.println(_holdPosition);
+    motor.moveTo(_holdPosition);
 }
 
-// /**
-//  * Logic Handler Hold Function
-//  * 
-//  * Used to drive the stepper motor to the hold position.
-//  */
-// void LogicHandler::hold() {
-//     // Update the State to Holding
-//     currentState = LogicState::HOLDING;
-//     motor.moveTo(_holdPosition);
-// }
-
-// /**
-//  * Logic Handler Release Function
-//  * 
-//  * Used to drive the stepper motor to the release position.
-//  */
-// void LogicHandler::release() {
-//     // Update the State to Releasing
-//     currentState = LogicState::RELEASING;
-//     motor.moveTo(_releasePosition);
-// }
+/**
+ * Logic Handler Release Function
+ * 
+ * Used to drive the stepper motor to the release position.
+ */
+void LogicHandler::release() {
+    // Update the State to Releasing
+    currentState = LogicState::RELEASING;
+    motor.moveTo(_releasePosition);
+}
 
 /**
  * Logic Handler Update Function
@@ -80,8 +80,12 @@ bool LogicHandler::update() {
 
     // Logic Functionality changes depending on Current State
     switch (currentState) {
+        case LogicState::IDLE:
+            // Serial.println("In Idle Sequence");
+            break;
         // Handle Homing State
         case LogicState::HOMING:
+            // Serial.println("In Homing Sequence");
             // When homing is complete, set state to Idle
             if (!motorBusy) {
                 currentState = LogicState::IDLE;
@@ -91,32 +95,38 @@ bool LogicHandler::update() {
         case LogicState::COUNTING:
             // When Count reaches Bulk-Packing Limit, drive
             // stepper motor to Hold Position
-            if (sensor.getCount() >= _limit) {
+            // Serial.println("In Counting Sequence");
+            if (sensor.getCount() >= _limit && !motorBusy) {
+                Serial.println("Transitioning to Holding sequence");
+                sensor.deactivate();
                 _lastHoldMs = 0;
-                // hold();
-                // TODO: handle holding
+                hold();
             }
             break;
         // Handle Holding State
         case LogicState::HOLDING:
             // Check how long stepper motor has been holding,
             // drive to release position when held for x-time
+            // Serial.println("In Holding Sequence");
             now = millis();
-            if (now - _lastHoldMs >= _holdTime) {
-                sensor.reset();
-                // release();
-                // TODO: handle releasing
-            }
+            // if (now - _lastHoldMs >= _holdTime) {
+            //     Serial.println("Releasing sequence");
+            //     sensor.reset();
+            //     release();
+            // }
             break;
         // Handle Releasing State
         case LogicState::RELEASING:
+            // Serial.println("In Releasing Sequence");
             // When releasing is complete, resume counting state
             if (!motorBusy) {
                 currentState = LogicState::COUNTING;
+                sensor.activate();
             }
             break;
         // Handle Manula State
         case LogicState::MANUAL:
+            // Serial.println("In Manual Sequence");
             motor.runSpeed();
             break;
         // todo: implement error state
@@ -124,7 +134,11 @@ bool LogicHandler::update() {
     return motorBusy;
 }
 
-void LogicHandler::setState(LogicState state) { currentState = state; }
+void LogicHandler::setState(LogicState state) { 
+    if (currentState == LogicState::IDLE || currentState == LogicState::MANUAL || currentState == LogicState::ERROR) {
+        currentState = state;
+    }
+}
 
 LogicState LogicHandler::getState() { return currentState; }
 
@@ -135,6 +149,10 @@ void LogicHandler::setManual() { motor.enable(); }
 void LogicHandler::setAuto() { motor.disable(); }
 
 void LogicHandler::setMotorSpeed(float speed) { motor.setSpeed(speed); }
+
+void LogicHandler::activateSensor() { sensor.activate(); }
+
+void LogicHandler::deactivateSensor() { sensor.deactivate(); }
 
 /**
  * Logic Handler Set Limit Function
@@ -161,7 +179,13 @@ int LogicHandler::getCurrentCount() { return sensor.getCount(); }
  * 
  * @param pos stepper motor hold position (steps)
  */
-void LogicHandler::setHoldPosition(long pos) { _holdPosition = pos; }
+void LogicHandler::setHoldPosition(long pos) {
+    Serial.print("Address of LogicHandler in setter: ");
+    Serial.println((uint32_t)this, HEX);
+    Serial.print("Set _holdPosition to: ");
+    Serial.println(_holdPosition);
+    _holdPosition = pos;
+}
 
 /**
  * Logic Handler Set Release Position Function
@@ -170,7 +194,11 @@ void LogicHandler::setHoldPosition(long pos) { _holdPosition = pos; }
  * 
  * @param pos stepper motor release position (steps)
  */
-void LogicHandler::setReleasePosition(long pos) { _releasePosition = pos; }
+void LogicHandler::setReleasePosition(long pos) { 
+    Serial.print("Release Position: ");
+    Serial.println(pos);
+    _releasePosition = pos;
+}
 
 /**
  * Logic Handler Set Hold Time Function

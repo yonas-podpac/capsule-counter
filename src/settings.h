@@ -1,7 +1,8 @@
 #include "config.h"
 
-#define MAX_BULK_OPTIONS 100                        // Maximum number of Bulk Options
+// Settings Definitions
 #define PROJECT_KEY "capsule-counter"               // Project key name
+#define MAX_BULK_OPTIONS 100                        // Maximum number of Bulk Options
 #define BULK_OPTIONS_KEY "bulk-options"             // Bulk-Options key name
 #define DEFAULT_BULK_OPTIONS {60, 100, 500}         // Default Bulk Options
 #define HOLD_POS_KEY "hold-position"                // Hold-Position key name

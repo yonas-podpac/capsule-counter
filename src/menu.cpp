@@ -60,8 +60,16 @@ void Menu::begin() {
     _bulkOptionsCount = settings.getBulkOptionCount();
 
     // Extract Logic Handler Variables from Settings
-    logicHandler.setHoldPosition(settings.getHoldPosition());
-    logicHandler.setReleasePosition(settings.getReleasePosition());
+    // logicHandler.setHoldPosition(settings.getHoldPosition());
+    // logicHandler.setReleasePosition(settings.getReleasePosition());
+    long holdPos = settings.getHoldPosition();
+    Serial.print("Hold Pos saved in Settings: ");
+    Serial.println(holdPos);
+    long releasePos = settings.getReleasePosition();
+    Serial.print("Release Pos saved in Settings: ");
+    Serial.println(releasePos);
+    logicHandler.setHoldPosition(holdPos);
+    logicHandler.setReleasePosition(releasePos);
     logicHandler.setHoldTime(settings.getHoldTime());
     logicHandler.setMotorPulseWidth(settings.getMotorPulseWidth());
     logicHandler.setMotorMaxSpeed(settings.getMotorMaxSpeed());
@@ -105,6 +113,8 @@ void Menu::update() {
 }
 
 MenuState Menu::getMenuState() { return _menuState; }
+
+int Menu::getBulkLimit() { return _bulkLimit; }
 
 /**
  * Menu Handle Transition Function
@@ -296,6 +306,7 @@ void Menu::handleMainMenu(Direction dir) {
             // 0th index: Count Screen
             case 0:
                 screen = Screen::COUNT;
+                logicHandler.setMotorSpeed(400);
                 _redraw = true;
                 break;
             // 1st index: Bulk select Screen
@@ -323,7 +334,11 @@ void Menu::handleMainMenu(Direction dir) {
         if (screen == Screen::MANUAL) {
             logicHandler.setManual();
             _menuState = MenuState::MANUAL;
+        } else if (screen == Screen::COUNT) {
+            logicHandler.activateSensor();
+            _menuState = MenuState::COUNTING;
         } else {
+            logicHandler.deactivateSensor();
             logicHandler.setAuto();
             _menuState = MenuState::IDLE;
         }
@@ -391,6 +406,8 @@ void Menu::handleSelection(Direction dir) {
         }
         // Change screen to Count Screen
         screen = Screen::COUNT;
+        logicHandler.activateSensor();
+        _menuState = MenuState::COUNTING;
     }
     // Handle user returing to main menu
     else if (dir == Direction::LEFT) {

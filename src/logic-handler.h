@@ -35,8 +35,8 @@ class LogicHandler {
         unsigned long _holdTime;        // Stepper Motor Hold Time (milliseconds)
         unsigned long _lastHoldMs;      // Tracker for hold time (milliseconds)
         unsigned long _homeError;       // Homing Error Timeout (milliseconds)
-        // void hold();
-        // void release();
+        void hold();
+        void release();
     public:
         LogicHandler(Sensor&, StepperMotor&);
         void begin();
@@ -48,6 +48,8 @@ class LogicHandler {
         void setManual();
         void setAuto();
         void setMotorSpeed(float);
+        void activateSensor();
+        void deactivateSensor();
         void setLimit(int);
         int getCurrentCount();
         void setHoldPosition(long);
