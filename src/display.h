@@ -1,8 +1,8 @@
 #include "config.h"
 
-#define CLOCK_PIN 14    // U8G2 Clock Pin
-#define DATA_PIN 13     // U8G2 Data Pin
-#define CS_PIN 15       // U8G2 Chip Select Pin
+#define CLOCK_PIN 22    // U8G2 Clock Pin yellow
+#define DATA_PIN 23     // U8G2 Data Pin orange
+#define CS_PIN 4        // U8G2 Chip Select Pin red
 
 // Bitmap of Podpac Logo
 const unsigned char epd_bitmap_podpac_logo [] PROGMEM = {

@@ -23,3 +23,12 @@ void Controller::begin() {
     motor.begin();
     Serial.println("[Controller] Setup Complete");
 }
+
+/**
+ * Controller Update Function
+ * 
+ * Function used for updating the controller.
+ * 
+ * @return true if motor is being driven
+ */
+bool Controller::update() { return false; }

@@ -26,4 +26,5 @@ class Controller {
     public:
         Controller();
         void begin();
+        bool update();
 };
