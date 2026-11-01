@@ -20,8 +20,8 @@ Menu::Menu() :
  * 
  * Function used to set up menu variables.
  */
-void Menu::begin() {
-    drawer.begin();
+void Menu::begin(unsigned long helpTime) {
+    drawer.begin(helpTime);
     joystick.begin();
     Serial.println("[Menu] Setup Complete");
     drawer.draw();
@@ -329,6 +329,24 @@ void Menu::handleSelectionOverflow() {
 }
 
 /**
+ * Menu Update Help Scroll Function
+ * 
+ * Function used to update the help scroll cycling.
+ */
+void Menu::updateHelpScroll() {
+    // Check if message should be cycled
+    unsigned long now = millis();
+    if (now - _lastHelpChangeMs < _helpScrollIntervalMs) return;
+    _lastHelpChangeMs = now;
+
+    // Update Current Index
+    drawer.idxTracker.incrementHelpIndex();
+    if (drawer.helpMessageCondition()) drawer.idxTracker.setHelpIndex(0);
+
+    _redraw = true;
+}
+
+/**
  * Menu Update Function
  * 
  * Function used to check user's screen selection.
@@ -336,6 +354,12 @@ void Menu::handleSelectionOverflow() {
 void Menu::update() {
     // Handle Joystick Changes
     handleTransition();
+
+    // Update Count when Screen is Counting
+    // TODO: implement
+
+    // Update Help Scroll
+    if (drawer.getCurrentScreen() != Screen::LOGO) updateHelpScroll();
 
     // Redraw if required
     if (_redraw) {

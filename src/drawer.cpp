@@ -11,15 +11,17 @@
 Drawer::Drawer() :
     display(),
     screen(Screen::LOGO),
-    idxTracker() {}
+    idxTracker(),
+    _helpResetFloor(0) {}
 
 /**
  * Drawer Begin Function
  * 
  * Function used to set up the class objects.
  */
-void Drawer::begin() {
+void Drawer::begin(unsigned long helpTime) {
     display.begin();
+    _helpResetFloor = 5 * helpTime / 1000;
     Serial.println("[Drawer] Setup Complete");
 }
 
@@ -36,6 +38,68 @@ Screen Drawer::getCurrentScreen() { return screen; }
  * Function used to set the current screen.
  */
 void Drawer::setCurrentScreen(Screen s) { screen = s; }
+
+/**
+ * Drawer Get Screen Index
+ * 
+ * Function used to get the index of the enumerated screen.
+ * 
+ * @return index of screen
+ */
+int Drawer::getScreenIndex(Screen s) {
+    switch(s) {
+        case Screen::LOGO:
+            return 0;
+        case Screen::MAIN:
+            return 1;
+        case Screen::COUNT:
+            return 2;
+        case Screen::SELECT:
+            return 3;
+        case Screen::NEW:
+            return 4;
+        case Screen::MANUAL:
+            return 5;
+        case Screen::HOME:
+            return 6;
+        case Screen::SETTINGS:
+            return 7;
+        case Screen::HOLD_POS_SETTING:
+            return 8;
+        case Screen::RELEASE_POS_SETTING:
+            return 9;
+        case Screen::HOLD_TIME_SETTING:
+            return 10;
+        case Screen::MOTOR_PULSE_WIDTH_SETTING:
+            return 11;
+        case Screen::MOTOR_MAX_SPEED_SETTING:
+            return 12;
+        case Screen::MOTOR_ACCELERATION_SETTING:
+            return 13;
+        case Screen::HALL_SENSITIVITY_SETTING:
+            return 14;
+        case Screen::HELP_SETTING:
+            return 15;
+        case Screen::FACTORY_RESET:
+            return 16;
+        default:
+            return -1;
+    }
+}
+
+/**
+ * Drawer Help Message Condition Function
+ * 
+ * Function used to check conditions for printing help message.
+ * 
+ * @return true if conditions met
+ */
+bool Drawer::helpMessageCondition() {
+    // Get Indices
+    int sIdx = getScreenIndex(screen);
+    int hIdx = floor(idxTracker.getHelpIndex() / _helpResetFloor);
+    return hIdx > HELP_MESSAGE_COUNT || _helpMessages[sIdx][hIdx] == "";
+}
 
 /**
  * Drawer Draw Logo Screen
@@ -183,7 +247,11 @@ void Drawer::drawFactoryReset(U8G2& u8g2) {}
  * Function used to draw the rolling help message at the bottom
  * of the various screens.
  */
-void Drawer::drawHelpMessage(U8G2& u8g2) {}
+void Drawer::drawHelpMessage(U8G2& u8g2) {
+    int sIdx = getScreenIndex(screen);
+    int hIdx = floor(idxTracker.getHelpIndex() / _helpResetFloor);
+    u8g2.drawStr(0, 62, _helpMessages[sIdx][hIdx]);
+}
 
 /**
  * Drawer Draw Function

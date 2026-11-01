@@ -15,6 +15,8 @@ class Menu {
         unsigned long _logoIntervalMs;              // Logo Interval (milliseconds)
         unsigned long _lastJoystickChangeMs;        // Joystick Change Tracker (milliseconds)
         unsigned long _joystickChangeIntervalMs;    // Joystick Sensitivity (milliseconds)
+        unsigned long _lastHelpChangeMs;            // Help Message Tracker (milliseconds)
+        unsigned long _helpScrollIntervalMs;        // Help Message Interval (milliseconds)
         size_t _bulkOptionsCount;
         void handleTransition();
         void handleLogo();
@@ -35,8 +37,9 @@ class Menu {
         void handleHelpSetting(Direction);
         void handleFactoryReset(Direction);
         void handleSelectionOverflow();
+        void updateHelpScroll();
     public:
         Menu();
-        void begin();
+        void begin(unsigned long);
         void update();
 };

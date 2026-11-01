@@ -83,6 +83,7 @@ class Drawer{
             {"Up/Down = Change", "Right = Confirm", "Left = Settings"},
             {"Up/Down = Change", "Right = Confirm", "Left = Settings"}
         };
+        int _helpResetFloor;            // Help Scroll Reset Floor
         void drawLogoScreen(U8G2&);
         void drawMainMenuScreen(U8G2&);
         void drawCountScreen(U8G2&);
@@ -104,8 +105,10 @@ class Drawer{
     public:
         IndexTracker idxTracker;
         Drawer();
-        void begin();
+        void begin(unsigned long);
         Screen getCurrentScreen();
         void setCurrentScreen(Screen);
+        int getScreenIndex(Screen);
+        bool helpMessageCondition();
         void draw();
 };

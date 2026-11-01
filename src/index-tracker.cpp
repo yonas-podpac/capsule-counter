@@ -204,3 +204,35 @@ void IndexTracker::incrementSettingsOverflow() { _settOverflow++; }
  * Function for decrementing the settings overflow.
  */
 void IndexTracker::decrementSettingsOverflow() { _settOverflow--; }
+
+/**
+ * Index Tracker Get Help Index Function
+ * 
+ * Function for getting the help message index.
+ * 
+ * @return help message index
+ */
+int IndexTracker::getHelpIndex() { return _helpIdx; }
+
+/**
+ * Index Tracker Set Help Index Function
+ * 
+ * Function for setting the help message index.
+ * 
+ * @param idx new index
+ */
+void IndexTracker::setHelpIndex(int idx) { _helpIdx = idx; }
+
+/**
+ * Index Tracker Increment Help Index Function
+ * 
+ * Function for incrementing the help message index.
+ */
+void IndexTracker::incrementHelpIndex() { _helpIdx++; }
+
+/**
+ * Index Tracker Decrement Help Index Function
+ * 
+ * Function for decrementing the help message index.
+ */
+void IndexTracker::decrementHelpIndex() { _helpIdx--; }

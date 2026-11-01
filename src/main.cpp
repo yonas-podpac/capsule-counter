@@ -52,9 +52,9 @@ void menuHandlerTask(void * pvParameters) {
 void setup() {
   Serial.begin(115200);
   Serial.println("[Main] Capsule Counter Setup Beginning");
-  controller.begin();
-  menu.begin();
   settings.begin();
+  controller.begin(settings.getHoldPosition(), settings.getReleasePosition(), settings.getHoldTime(), settings.getMotorPulseWidth(), settings.getMotorMaxSpeed(), settings.getMotorAcceleration(), settings.getHallSensitivity());
+  menu.begin(settings.getHelpTime());
   Serial.println("[Main] Capsule Counter Setup Complete");
   xTaskCreatePinnedToCore(controllerHandlerTask, "Control Handling", 10000, NULL, 1, &controllerTask, 0);
   delay(500);

@@ -13,6 +13,7 @@ class IndexTracker {
         int _bulkOverflow;  // Bulk Overflow Tracker
         int _settIdx;       // Settings Index
         int _settOverflow;  // Settings Overflow Tracker
+        int _helpIdx;       // Help Message
     public:
         IndexTracker();
         int getMainIndex();
@@ -39,4 +40,8 @@ class IndexTracker {
         void decrementSettingsIndex();
         void incrementSettingsOverflow();
         void decrementSettingsOverflow();
+        int getHelpIndex();
+        void setHelpIndex(int);
+        void incrementHelpIndex();
+        void decrementHelpIndex();
 };
