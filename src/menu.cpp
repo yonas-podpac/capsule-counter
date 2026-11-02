@@ -16,7 +16,8 @@ Menu::Menu() :
     _lastJoystickChangeMs(0),
     _joystickChangeIntervalMs(180),
     _lastHelpChangeMs(0),
-    _helpScrollIntervalMs(50) {}
+    _helpScrollIntervalMs(50),
+    motorState(MotorState::STOPPED) {}
 
 /**
  * Menu Begin Function
@@ -29,6 +30,29 @@ void Menu::begin(Settings& settings) {
     Serial.println("[Menu] Setup Complete");
     drawer.draw();
 }
+
+/**
+ * Menu Set Current Count Function
+ * 
+ * Function used to set the current count from the IR Sensor.
+ * 
+ * @param count current capsule count
+ */
+void Menu::setCurrentCount(int count) {
+    if (count != drawer.getLastDisplayedCount()) {
+        drawer.setLastDisplayedCount(count);
+        _redraw = true;
+    }
+}
+
+/**
+ * Menu Set Motor State Function
+ * 
+ * Function for setting the current state of the stepper motor.
+ * 
+ * @param state current motor state
+ */
+void Menu::setMotorState(MotorState state) { motorState = state; }
 
 /**
  * Menu Handle Transition Function

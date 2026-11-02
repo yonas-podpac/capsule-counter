@@ -23,11 +23,11 @@ Drawer::Drawer() :
  * 
  * Function used to set up the class objects.
  * 
- * @param helpTime help message time limit
- * @param bulkOptionsCount number of available bulk options
+ * @param sett preferences manager object
  */
-void Drawer::begin(Settings& settings) {
+void Drawer::begin(Settings& sett) {
     display.begin();
+    settings = sett;
     _helpResetFloor = 5 * settings.getHelpTime() / 1000;
     _bulkOptionsCount = settings.getBulkOptionCount();
     settings.getBulkOptions(_bulkOptions);
@@ -166,6 +166,24 @@ void Drawer::incrementNewBulkOption() { _newBulkOption += 10; }
  * Function for removing 10 from the new bulk option.
  */
 void Drawer::decrementNewBulktOption() { _newBulkOption -= 10; }
+
+/**
+ * Drawer Get Last Displayed Count Function
+ * 
+ * Function for getting the last displayed capsule count.
+ * 
+ * @return last displayed count
+ */
+int Drawer::getLastDisplayedCount() { return _lastDisplayedCount; }
+
+/**
+ * Drawer Set Last Displayed Count Function
+ * 
+ * Function for updating the displayed capsule count.
+ * 
+ * @param count new count to be displayed
+ */
+void Drawer::setLastDisplayedCount(int count) { _lastDisplayedCount = count; }
 
 /**
  * Drawer Help Message Condition Function

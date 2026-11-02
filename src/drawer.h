@@ -44,6 +44,7 @@ class Drawer{
     private:
         Display display;            // Display Object
         Screen screen;              // Current Screen
+        Settings settings;          // Preferences Manager Object
         // Menu Items
         const char* _menuItems[MENU_COUNT] = {
             "1. Count Capsules",                    // Count Capsules Menu Message
@@ -125,6 +126,8 @@ class Drawer{
         void setNewBulkOption(int);
         void incrementNewBulkOption();
         void decrementNewBulktOption();
+        int getLastDisplayedCount();
+        void setLastDisplayedCount(int);
         bool helpMessageCondition();
         void draw();
 };

@@ -2,6 +2,16 @@
 #include "drawer.h"
 #include "joystick.h"
 
+/* Motor State */
+enum MotorState {
+    STOPPED,
+    FORWARDS,
+    BACKWARDS,
+    NOT_HOMED,
+    HOMING,
+    HOMED,
+};
+
 /**
  * Menu Class
  * 
@@ -17,6 +27,7 @@ class Menu {
         unsigned long _joystickChangeIntervalMs;        // Joystick Sensitivity (milliseconds)
         unsigned long _lastHelpChangeMs;                // Help Message Tracker (milliseconds)
         unsigned long _helpScrollIntervalMs;            // Help Message Interval (milliseconds)
+        MotorState motorState;                          // State of Stepper Motor
         void handleTransition();
         void handleLogo();
         void handleMainMenu(Direction);
@@ -40,5 +51,7 @@ class Menu {
     public:
         Menu();
         void begin(Settings&);
+        void setCurrentCount(int);
+        void setMotorState(MotorState);
         void update();
 };

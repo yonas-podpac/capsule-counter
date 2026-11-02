@@ -1,6 +1,7 @@
 #include "config.h"
 #include "ir-sensor.h"
 #include "motor.h"
+#include "settings.h"
 
 /* Controller States */
 enum ControlState {
@@ -22,6 +23,7 @@ class Controller {
     private:
         IRSensor sensor;                        // IR Sensor Object
         Motor motor;                            // Stepper Motor Object
+        Settings settings;                      // Preferences Manager Object
         volatile ControlState _currentState;    // Current Control State
         int _bulkLimit;                         // Bulk Count Limit
         long _holdPos;                          // Hold Position
@@ -29,6 +31,13 @@ class Controller {
         unsigned long _holdTime;                // Hold Time
     public:
         Controller();
-        void begin(long, long, unsigned long, int, float, float, int);
+        void begin(Settings&);
+        void enableIRSensor();
+        void disableIRSensor();
+        void setMotorManual();
+        void setMotorAuto();
+        void setMotorSpeed(float);
+        void home();
+        void updateSettings();
         bool update();
 };

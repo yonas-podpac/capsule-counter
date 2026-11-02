@@ -1,9 +1,18 @@
 #include "controller.h"
 #include "menu.h"
-// #include "settings.h"
 
 // Define Class Objects
-struct Command {};
+struct Menu2ControlCommand {
+  bool enableIR;
+  bool motorManual;
+  int motorSpeed;
+  bool home;
+  bool settingsChange;
+};
+struct Control2MenuCommand {
+  int currentCount;
+  MotorState motorState;
+};
 
 // Initialise Objects
 Controller controller;
@@ -11,7 +20,8 @@ Menu menu;
 Settings settings;
 TaskHandle_t controllerTask;
 TaskHandle_t menuTask;
-QueueHandle_t commandQueue;
+QueueHandle_t menu2ControlCommandQueue;
+QueueHandle_t control2MenuCommandQueue;
 
 /**
  * Controller Task Function
@@ -52,8 +62,11 @@ void menuHandlerTask(void * pvParameters) {
 void setup() {
   Serial.begin(115200);
   Serial.println("[Main] Capsule Counter Setup Beginning");
+  menu2ControlCommandQueue = xQueueCreate(10, sizeof(Menu2ControlCommand));
+  control2MenuCommandQueue = xQueueCreate(10, sizeof(Control2MenuCommand));
   settings.begin();
-  controller.begin(settings.getHoldPosition(), settings.getReleasePosition(), settings.getHoldTime(), settings.getMotorPulseWidth(), settings.getMotorMaxSpeed(), settings.getMotorAcceleration(), settings.getHallSensitivity());
+  // controller.begin(settings.getHoldPosition(), settings.getReleasePosition(), settings.getHoldTime(), settings.getMotorPulseWidth(), settings.getMotorMaxSpeed(), settings.getMotorAcceleration(), settings.getHallSensitivity());
+  controller.begin(settings);
   menu.begin(settings);
   Serial.println("[Main] Capsule Counter Setup Complete");
   xTaskCreatePinnedToCore(controllerHandlerTask, "Control Handling", 10000, NULL, 1, &controllerTask, 0);

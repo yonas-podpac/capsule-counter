@@ -19,26 +19,78 @@ Controller::Controller():
  * 
  * Function used to setup the associated sensors and motor.
  * 
- * @param hPos hold position
- * @param rPos release position
- * @param hTime hold time
- * @param pw motor pulse width
- * @param ms motor maximum speed
- * @param acc motor acceleartion
- * @param hs hall sensitivity
+ * @param sett Preferences Manager object
  */
-void Controller::begin(long hPos, long rPos, unsigned long hTime, int pw, float ms, float acc, int hs) {
+void Controller::begin(Settings& sett) {
     sensor.begin();
     motor.begin();
-    _holdPos = hPos;
-    _releasePos = rPos;
-    _holdTime = hTime;
-    motor.setPulseWidth(pw);
-    motor.setMaxSpeed(ms);
-    motor.setAcceleration(acc);
-    motor.setHallSensitivity(hs);
+    settings = sett;
+    _holdPos = settings.getHoldPosition();
+    _releasePos = settings.getReleasePosition();
+    _holdTime = settings.getHoldTime();
+    motor.setPulseWidth(settings.getMotorPulseWidth());
+    motor.setMaxSpeed(settings.getMotorMaxSpeed());
+    motor.setAcceleration(settings.getMotorAcceleration());
+    motor.setHallSensitivity(settings.getHallSensitivity());
     Serial.println("[Controller] Setup Complete");
 }
+
+/**
+ * Controller Enable IR Sensor Function
+ * 
+ * Function used to enable the IR Sensor to start counting capsules.
+ */
+void Controller::enableIRSensor() {
+    Serial.println("[Controller] Enabling IR Sensor");
+    sensor.activate();
+}
+
+/**
+ * Controller Disable IR Sensor Function
+ * 
+ * Function used to disable the IR sensor, reseting the count.
+ */
+void Controller::disableIRSensor() {
+    Serial.println("[Controller] Disabling IR Sensor");
+    sensor.deactivate();
+    sensor.reset();
+}
+
+/**
+ * Controller Set Motor Manual Function
+ * 
+ * Function for setting the motor to manual mode.
+ */
+void Controller::setMotorManual() {
+    Serial.println("[Controller] Motor set to manual drive");
+    motor.enable();
+}
+
+/**
+ * Controller Set Motor Auto Function
+ * 
+ * Function for setting the motor to auto mode.
+ */
+void Controller::setMotorAuto() {
+    Serial.println("[Controller] Motor set to automatic drive");
+    motor.disable();    // TODO: is this correct?
+}
+
+/**
+ * Controller Set Motor Speed Function
+ * 
+ * Function for setting the motor speed.
+ * 
+ * @param speed motor speed in steps/second
+ */
+void Controller::setMotorSpeed(float speed) { motor.setSpeed(speed); }
+
+/**
+ * Controller Update Settings Function
+ * 
+ * Function for updating the controller settings.
+ */
+void Controller::updateSettings() {/* TODO: implement */}
 
 /**
  * Controller Update Function
@@ -47,4 +99,11 @@ void Controller::begin(long hPos, long rPos, unsigned long hTime, int pw, float 
  * 
  * @return true if motor is being driven
  */
-bool Controller::update() { return false; }
+bool Controller::update() {
+    // Execute Update Functions
+    sensor.update();
+    motor.update();
+    bool busy = motor.isBusy();
+
+    return busy;
+}
