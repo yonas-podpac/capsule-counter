@@ -11,17 +11,20 @@ Joystick jystk;
 Menu::Menu() :
     drawer(drw),
     joystick(jystk),
+    _redraw(true),
     _logoIntervalMs(5000),
     _lastJoystickChangeMs(0),
-    _joystickChangeIntervalMs(180) {}
+    _joystickChangeIntervalMs(180),
+    _lastHelpChangeMs(0),
+    _helpScrollIntervalMs(50) {}
 
 /**
  * Menu Begin Function
  * 
  * Function used to set up menu variables.
  */
-void Menu::begin(unsigned long helpTime) {
-    drawer.begin(helpTime);
+void Menu::begin(Settings& settings) {
+    drawer.begin(settings);
     joystick.begin();
     Serial.println("[Menu] Setup Complete");
     drawer.draw();
@@ -131,7 +134,7 @@ void Menu::handleMainMenu(Direction dir) {
     }
 
     // Handle Joystick Down
-    if (dir == Direction::DOWN) {
+    else if (dir == Direction::DOWN) {
         drawer.idxTracker.incrementMainIndex();
         if (drawer.idxTracker.getMainIndex() >= MENU_COUNT) {
             drawer.idxTracker.setMainIndex(0);
@@ -139,8 +142,34 @@ void Menu::handleMainMenu(Direction dir) {
         }
         handleSelectionOverflow();
     }
+    
+    // Handle Joystick Right
+    else if (dir == Direction::RIGHT) {
+        switch(drawer.idxTracker.getMainIndex()) {
+            case 0: // 0th Index: Count Screen
+                drawer.setCurrentScreen(Screen::COUNT);
+                // TODO: motor control?
+                _redraw = true;
+                break;
+            case 1: // 1st Index: Bulk Select Screen
+                drawer.setCurrentScreen(Screen::SELECT);
+                break;
+            case 2: // 2nd Index: New Bulk Select Screen
+                drawer.setCurrentScreen(Screen::NEW);
+                break;
+            case 3: // 3rd Index: Manual Drive Screen
+                drawer.setCurrentScreen(Screen::MANUAL);
+                break;
+            case 4: // 4th Index: Home Motor Screen
+                drawer.setCurrentScreen(Screen::HOME);
+                break;
+            case 5: // 5th Index: Settings Screen
+                drawer.setCurrentScreen(Screen::SETTINGS);
+                break;
+        }
 
-    // TODO: Handle Joystick Right
+        // TODO: update controller?
+    }
 }
 
 /**
@@ -151,7 +180,10 @@ void Menu::handleMainMenu(Direction dir) {
  * 
  * @param dir joystick direction
  */
-void Menu::handleCount(Direction dir) {}
+void Menu::handleCount(Direction dir) {
+    // Handle Joystick Left
+    if (dir == Direction::LEFT) drawer.setCurrentScreen(Screen::MAIN);
+}
 
 /**
  * Menu Handle Selection Function
@@ -161,7 +193,47 @@ void Menu::handleCount(Direction dir) {}
  * 
  * @param dir joystick direction
  */
-void Menu::handleSelection(Direction dir) {}
+void Menu::handleSelection(Direction dir) {
+    // Handle Joystick Up
+    if (dir == Direction::UP) {
+        drawer.idxTracker.decrementBulkIndex();
+        // Handle Bulk Overflow
+        if (drawer.idxTracker.getBulkIndex() < 0) {
+            drawer.idxTracker.setBulkIndex(drawer.getBulkOptionsCount());
+        }
+        handleSelectionOverflow();
+    }
+    
+    // Handle Joystick Down
+    else if (dir == Direction::DOWN) {
+        drawer.idxTracker.incrementBulkIndex();
+        // Handle Bulk Overflow
+        if (drawer.idxTracker.getBulkIndex() > drawer.getBulkOptionsCount() + 1) {
+            drawer.idxTracker.setBulkIndex(0);
+            drawer.idxTracker.setBulkOverflow(0);
+        }
+        handleSelectionOverflow();
+    }
+
+    // Handle Joystick Right
+    else if (dir == Direction::RIGHT) {
+        // Handle Continuous Count
+        if (drawer.idxTracker.getBulkIndex() == 0) drawer.enableContinuousCount();
+        // Handle Bulk Selection
+        else {
+            drawer.disableContinuousCount();
+            drawer.setBulkLimit();
+            // TODO: Set controller limit
+        }
+
+        // Change Screen
+        drawer.setCurrentScreen(Screen::COUNT);
+        // TODO: set controller settings
+    }
+
+    // Handle Joystick Left
+    else if (dir == Direction::LEFT) drawer.setCurrentScreen(Screen::MAIN);
+}
 
 /**
  * Menu Handle New Count Function
@@ -171,7 +243,36 @@ void Menu::handleSelection(Direction dir) {}
  * 
  * @param dir joystick direction
  */
-void Menu::handleNewCount(Direction dir) {}
+void Menu::handleNewCount(Direction dir) {
+    // Handle Joystick Up
+    if (dir == Direction::UP) drawer.incrementNewBulkOption();
+
+    // Handle Joystick Down
+    else if (dir == Direction::DOWN) {
+        drawer.decrementNewBulktOption();
+        
+        // Prevent Options Less than 30
+        if (drawer.getNewBulkOption() <= 30) drawer.setNewBulkOption(30);
+    }
+
+    // Handle Joystick Right
+    else if (dir == Direction::RIGHT) {
+        // Only accept options greater than 20
+        if (drawer.getNewBulkOption() >= 30) {
+            // Save New Options
+            // TODO: save options to preferences
+        }
+        drawer.setNewBulkOption(30);
+        // Change Screen
+        drawer.setCurrentScreen(Screen::MAIN);
+    }
+
+    // Handle Joystick Left
+    else if (dir == Direction::LEFT) {
+        drawer.setNewBulkOption(30);
+        drawer.setCurrentScreen(Screen::MAIN);
+    }
+}
 
 /**
  * Menu Handle Manual Function
@@ -314,7 +415,7 @@ void Menu::handleSelectionOverflow() {
     int bulkOverflow = drawer.idxTracker.getBulkOverflow();
     if (bulkOverflow > 0 && bulkIdx < bulkOverflow) {
         drawer.idxTracker.decrementBulkOverflow();
-    } else if (bulkIdx >= MAX_DISPLAYED_BULK_SELECT && bulkOverflow < _bulkOptionsCount - MAX_DISPLAYED_BULK_SELECT) {
+    } else if (bulkIdx >= MAX_DISPLAYED_BULK_SELECT && bulkOverflow < drawer.getBulkOptionsCount() - MAX_DISPLAYED_BULK_SELECT) {
         drawer.idxTracker.incrementBulkOverflow();
     }
 

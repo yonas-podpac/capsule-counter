@@ -12,16 +12,25 @@ Drawer::Drawer() :
     display(),
     screen(Screen::LOGO),
     idxTracker(),
+    _continuousCount(true),
+    _bulkLimit(60),
+    _newBulkOption(30),
+    _lastDisplayedCount(0),
     _helpResetFloor(0) {}
 
 /**
  * Drawer Begin Function
  * 
  * Function used to set up the class objects.
+ * 
+ * @param helpTime help message time limit
+ * @param bulkOptionsCount number of available bulk options
  */
-void Drawer::begin(unsigned long helpTime) {
+void Drawer::begin(Settings& settings) {
     display.begin();
-    _helpResetFloor = 5 * helpTime / 1000;
+    _helpResetFloor = 5 * settings.getHelpTime() / 1000;
+    _bulkOptionsCount = settings.getBulkOptionCount();
+    settings.getBulkOptions(_bulkOptions);
     Serial.println("[Drawer] Setup Complete");
 }
 
@@ -88,6 +97,77 @@ int Drawer::getScreenIndex(Screen s) {
 }
 
 /**
+ * Drawer Enable Contiuous Count Function
+ * 
+ * Function used to enable the continuous counter
+ */
+void Drawer::enableContinuousCount() { _continuousCount = true; }
+
+/**
+ * Drawer Disable Contiuous Count Function
+ * 
+ * Function used to disable the continuous counter
+ */
+void Drawer::disableContinuousCount() { _continuousCount = false; }
+
+/**
+ * Drawer Get Bulk Options Count Function
+ * 
+ * Function for getting the bulk options count.
+ * 
+ * @return number of bulk options available
+ */
+size_t Drawer::getBulkOptionsCount() { return _bulkOptionsCount; }
+
+/**
+ * Drawer Set Bulk Options Count Function
+ * 
+ * Function for setting the bulk options count.
+ * 
+ * @param count number of available bulk options
+ */
+void Drawer::setBulkOptionsCount(size_t count) { _bulkOptionsCount = count; }
+
+/**
+ * Drawer Set Bulk Limit Function
+ * 
+ * Function used to set the bulk counting limit.
+ */
+void Drawer::setBulkLimit() { _bulkLimit = _bulkOptions[idxTracker.getBulkIndex() - 1]; }
+
+/**
+ * Drawer Get New Bulk Option Function
+ * 
+ * Function for getting the new bulk option.
+ * 
+ * @return new bulk option
+ */
+int Drawer::getNewBulkOption() { return _newBulkOption; }
+
+/**
+ * Drawer Set New Bulk Option Function
+ * 
+ * Function for setting the new bulk option.
+ * 
+ * @param option new bulk option
+ */
+void Drawer::setNewBulkOption(int option) { _newBulkOption = option; }
+
+/**
+ * Drawer Increment New Bulk Option Function
+ * 
+ * Function for adding 10 to the new bulk option.
+ */
+void Drawer::incrementNewBulkOption() { _newBulkOption += 10; }
+
+/**
+ * Drawer Decrement New Bulk Option Function
+ * 
+ * Function for removing 10 from the new bulk option.
+ */
+void Drawer::decrementNewBulktOption() { _newBulkOption -= 10; }
+
+/**
  * Drawer Help Message Condition Function
  * 
  * Function used to check conditions for printing help message.
@@ -133,6 +213,7 @@ void Drawer::drawMainMenuScreen(U8G2& u8g2) {
         }
     }
 
+    // Draw Help Message
     drawHelpMessage(u8g2);
 }
 
@@ -141,21 +222,75 @@ void Drawer::drawMainMenuScreen(U8G2& u8g2) {
  * 
  * Function used to draw the count screen.
  */
-void Drawer::drawCountScreen(U8G2& u8g2) {}
+void Drawer::drawCountScreen(U8G2& u8g2) {
+    // Draw Header Line
+    u8g2.setFont(u8g2_font_6x10_tf);
+    u8g2.drawStr(0, 10, "Capsule Count:");
+
+    // Draw Counter
+    char buffer[16];
+    if (_continuousCount) snprintf(buffer, sizeof(buffer), "%lu", (unsigned long) _lastDisplayedCount);
+    else snprintf(buffer, sizeof(buffer), "%lu / %d", (unsigned long) _lastDisplayedCount, _bulkLimit);
+    u8g2.setFont(u8g2_font_logisoso20_tf);
+    int x = (128 - u8g2.getStrWidth(buffer)) / 2;
+    u8g2.drawStr(x, 42, buffer);
+
+    // Draw Help Message
+    drawHelpMessage(u8g2);
+}
 
 /**
  * Drawer Draw Selection Screen Function
  * 
  * Function used to draw the bulk selection screen.
  */
-void Drawer::drawSelectionScreen(U8G2& u8g2) {}
+void Drawer::drawSelectionScreen(U8G2& u8g2) {
+    // Draw Header Line
+    u8g2.setFont(u8g2_font_6x10_tf);
+    u8g2.drawStr(0, 10, "Bulk Selection:");
+
+    // Handle Overflow
+    int limit = _bulkOptionsCount + 1;  // Add 1 for continuous count
+    if (_bulkOptionsCount >= MAX_DISPLAYED_BULK_SELECT) limit = MAX_DISPLAYED_BULK_SELECT + idxTracker.getBulkOverflow();
+
+    // Draw Bulk Options
+    for (int i = idxTracker.getBulkOverflow(); i < limit; i++) {
+        char buffer[20];
+        if (i == 0) snprintf(buffer, sizeof(buffer), "Continuous Count");
+        else snprintf(buffer, sizeof(buffer), "%d", _bulkOptions[i - 1]);
+
+        int y = 22 + (i - idxTracker.getBulkOverflow()) * 10;
+        if (i == idxTracker.getBulkIndex()) {
+            u8g2.drawStr(2, y, ">");
+            u8g2.drawFrame(10, y - 8, 110, 10);
+            u8g2.drawStr(14, y, buffer);
+        } else u8g2.drawStr(14, y, buffer);
+    }
+
+    // Draw Help Message
+    drawHelpMessage(u8g2);
+}
 
 /**
  * Drawer Draw New Count Screen Function
  * 
  * Function used to draw the new count screen.
  */
-void Drawer::drawNewCountScreen(U8G2& u8g2) {}
+void Drawer::drawNewCountScreen(U8G2& u8g2) {
+    // Draw Header Line
+    u8g2.setFont(u8g2_font_6x10_tf);
+    u8g2.drawStr(0, 10, "New Bulk Option:");
+
+    // Draw New Bulk Option
+    char buffer[16];
+    snprintf(buffer, sizeof(buffer), "%d", _newBulkOption);
+    u8g2.setFont(u8g2_font_logisoso20_tf);
+    int x = (128 - u8g2.getStrWidth(buffer)) / 2;
+    u8g2.drawStr(x, 42, buffer);
+
+    // Draw Help Message
+    drawHelpMessage(u8g2);
+}
 
 /**
  * Drawer Draw Manual Screen Function

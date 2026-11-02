@@ -11,13 +11,12 @@ class Menu {
     private:
         Drawer drawer;
         Joystick joystick;
-        bool _redraw;                               // Redraw Toggle
-        unsigned long _logoIntervalMs;              // Logo Interval (milliseconds)
-        unsigned long _lastJoystickChangeMs;        // Joystick Change Tracker (milliseconds)
-        unsigned long _joystickChangeIntervalMs;    // Joystick Sensitivity (milliseconds)
-        unsigned long _lastHelpChangeMs;            // Help Message Tracker (milliseconds)
-        unsigned long _helpScrollIntervalMs;        // Help Message Interval (milliseconds)
-        size_t _bulkOptionsCount;
+        bool _redraw;                                   // Redraw Toggle
+        unsigned long _logoIntervalMs;                  // Logo Interval (milliseconds)
+        unsigned long _lastJoystickChangeMs;            // Joystick Change Tracker (milliseconds)
+        unsigned long _joystickChangeIntervalMs;        // Joystick Sensitivity (milliseconds)
+        unsigned long _lastHelpChangeMs;                // Help Message Tracker (milliseconds)
+        unsigned long _helpScrollIntervalMs;            // Help Message Interval (milliseconds)
         void handleTransition();
         void handleLogo();
         void handleMainMenu(Direction);
@@ -40,6 +39,6 @@ class Menu {
         void updateHelpScroll();
     public:
         Menu();
-        void begin(unsigned long);
+        void begin(Settings&);
         void update();
 };

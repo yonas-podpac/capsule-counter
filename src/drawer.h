@@ -1,6 +1,7 @@
 #include "config.h"
 #include "display.h"
 #include "index-tracker.h"
+#include "settings.h"
 
 // Drawer Definitions
 #define MENU_COUNT 6                                    // Number of Menu Items
@@ -83,7 +84,13 @@ class Drawer{
             {"Up/Down = Change", "Right = Confirm", "Left = Settings"},
             {"Up/Down = Change", "Right = Confirm", "Left = Settings"}
         };
-        int _helpResetFloor;            // Help Scroll Reset Floor
+        bool _continuousCount;                  // Continuous Count Toggle
+        int _bulkLimit;                         // Bulk Counting Limit
+        int _bulkOptions[MAX_BULK_OPTIONS];     // Bulkt Options
+        size_t _bulkOptionsCount;               // Bulk Options Count
+        int _newBulkOption;                     // New Bulk Option
+        int _lastDisplayedCount;                // Last Displayed Capsule Count
+        int _helpResetFloor;                    // Help Scroll Reset Floor
         void drawLogoScreen(U8G2&);
         void drawMainMenuScreen(U8G2&);
         void drawCountScreen(U8G2&);
@@ -105,10 +112,19 @@ class Drawer{
     public:
         IndexTracker idxTracker;
         Drawer();
-        void begin(unsigned long);
+        void begin(Settings&);
         Screen getCurrentScreen();
         void setCurrentScreen(Screen);
         int getScreenIndex(Screen);
+        void enableContinuousCount();
+        void disableContinuousCount();
+        void setBulkLimit();
+        size_t getBulkOptionsCount();
+        void setBulkOptionsCount(size_t);
+        int getNewBulkOption();
+        void setNewBulkOption(int);
+        void incrementNewBulkOption();
+        void decrementNewBulktOption();
         bool helpMessageCondition();
         void draw();
 };

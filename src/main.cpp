@@ -1,6 +1,6 @@
 #include "controller.h"
 #include "menu.h"
-#include "settings.h"
+// #include "settings.h"
 
 // Define Class Objects
 struct Command {};
@@ -54,7 +54,7 @@ void setup() {
   Serial.println("[Main] Capsule Counter Setup Beginning");
   settings.begin();
   controller.begin(settings.getHoldPosition(), settings.getReleasePosition(), settings.getHoldTime(), settings.getMotorPulseWidth(), settings.getMotorMaxSpeed(), settings.getMotorAcceleration(), settings.getHallSensitivity());
-  menu.begin(settings.getHelpTime());
+  menu.begin(settings);
   Serial.println("[Main] Capsule Counter Setup Complete");
   xTaskCreatePinnedToCore(controllerHandlerTask, "Control Handling", 10000, NULL, 1, &controllerTask, 0);
   delay(500);
