@@ -12,7 +12,9 @@ Controller::Controller():
     sensor(s),
     motor(m),
     _currentState(ControlState::IDLE),
-    _bulkLimit(0) {}
+    _bulkLimit(0),
+    motorEnabled(false),
+    irsensorEnabled(false) {}
 
 /**
  * Controller Begin Function
@@ -41,8 +43,11 @@ void Controller::begin(Settings& sett) {
  * Function used to enable the IR Sensor to start counting capsules.
  */
 void Controller::enableIRSensor() {
-    Serial.println("[Controller] Enabling IR Sensor");
-    sensor.activate();
+    if (!irsensorEnabled) {
+        Serial.println("[Controller] Enabling IR Sensor");
+        sensor.activate();
+        irsensorEnabled = true;
+    }
 }
 
 /**
@@ -51,39 +56,60 @@ void Controller::enableIRSensor() {
  * Function used to disable the IR sensor, reseting the count.
  */
 void Controller::disableIRSensor() {
-    Serial.println("[Controller] Disabling IR Sensor");
-    sensor.deactivate();
-    sensor.reset();
+    if (irsensorEnabled) {
+        Serial.println("[Controller] Disabling IR Sensor");
+        sensor.deactivate();
+        sensor.reset();
+        irsensorEnabled = false;
+    }
 }
 
 /**
- * Controller Set Motor Manual Function
+ * Controller Enable Motor Function
  * 
- * Function for setting the motor to manual mode.
+ * Function for enabling the motor.
  */
-void Controller::setMotorManual() {
-    Serial.println("[Controller] Motor set to manual drive");
-    motor.enable();
+void Controller::enableMotor() {
+    if (!motorEnabled) {
+        Serial.println("[Controller] Motor enabled");
+        motor.enable();
+        motorEnabled = true;
+    }
 }
 
 /**
- * Controller Set Motor Auto Function
+ * Controller Disable Motor Function
  * 
- * Function for setting the motor to auto mode.
+ * Function for disabling the motor.
  */
-void Controller::setMotorAuto() {
-    Serial.println("[Controller] Motor set to automatic drive");
-    motor.disable();    // TODO: is this correct?
+void Controller::disableMotor() {
+    if (motorEnabled) {
+        Serial.println("[Controller] Motor disabled");
+        motor.disable();    // TODO: is this correct?
+        motorEnabled = false;
+    }
 }
 
 /**
- * Controller Set Motor Speed Function
+ * Controller Move Forwards Function
  * 
- * Function for setting the motor speed.
- * 
- * @param speed motor speed in steps/second
+ * Function for moving the motor forwards.
  */
-void Controller::setMotorSpeed(float speed) { motor.setSpeed(speed); }
+void Controller::moveForwards() { motor.setSpeed(FORWARDS_SPEED); }
+
+/**
+ * Controller Move Backwards Function
+ * 
+ * Function for moving the motor backwards.
+ */
+void Controller::moveBackwards() { motor.setSpeed(BACKWARDS_SPEED); }
+
+/**
+ * Controller Stop Function
+ * 
+ * Function for stopping the motor.
+ */
+void Controller::stop() { motor.setSpeed(STOP_SPEED); }
 
 /**
  * Controller Update Settings Function
@@ -104,6 +130,7 @@ bool Controller::update() {
     sensor.update();
     motor.update();
     bool busy = motor.isBusy();
+    if (motorEnabled) motor.run();
 
     return busy;
 }

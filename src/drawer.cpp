@@ -11,6 +11,7 @@
 Drawer::Drawer() :
     display(),
     screen(Screen::LOGO),
+    motorState(MotorState::STOPPED),
     idxTracker(),
     _continuousCount(true),
     _bulkLimit(60),
@@ -95,6 +96,24 @@ int Drawer::getScreenIndex(Screen s) {
             return -1;
     }
 }
+
+/**
+ * Drawer Get Motor State Function
+ * 
+ * Function used to get the current state of the motor.
+ * 
+ * @return current motor state
+ */
+MotorState Drawer::getMotorState() { return motorState; }
+
+/**
+ * Drawer Set Motor State Function
+ * 
+ * Function used to set the state of the motor.
+ * 
+ * @param state new state of the motor
+ */
+void Drawer::setMotorState(MotorState state) { motorState = state; }
 
 /**
  * Drawer Enable Contiuous Count Function
@@ -315,7 +334,24 @@ void Drawer::drawNewCountScreen(U8G2& u8g2) {
  * 
  * Function used to draw the manual motor drive screen.
  */
-void Drawer::drawManualScreen(U8G2& u8g2) {}
+void Drawer::drawManualScreen(U8G2& u8g2) {
+    // Draw Header Line
+    u8g2.setFont(u8g2_font_6x10_tf);
+    u8g2.drawStr(0, 10, "Manual Drive:");
+
+    // Draw Current Direction of Drive
+    u8g2.setFont(u8g2_font_logisoso16_tf);
+    if (motorState == MotorState::STOPPED) {
+        u8g2.drawStr(10, 42, "Stopped");
+    } else if (motorState == MotorState::FORWARDS) {
+        u8g2.drawStr(10, 42, "Forwards");
+    } else if (motorState == MotorState::BACKWARDS) {
+        u8g2.drawStr(10, 42, "Backwards");
+    }
+    
+    // Draw Help Message
+    drawHelpMessage(u8g2);
+}
 
 /**
  * Drawer Draw Home Screen Function
@@ -403,6 +439,7 @@ void Drawer::drawFactoryReset(U8G2& u8g2) {}
 void Drawer::drawHelpMessage(U8G2& u8g2) {
     int sIdx = getScreenIndex(screen);
     int hIdx = floor(idxTracker.getHelpIndex() / _helpResetFloor);
+    u8g2.setFont(u8g2_font_6x10_tf);
     u8g2.drawStr(0, 62, _helpMessages[sIdx][hIdx]);
 }
 

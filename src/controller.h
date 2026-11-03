@@ -3,6 +3,11 @@
 #include "motor.h"
 #include "settings.h"
 
+// Controller Definitions
+#define FORWARDS_SPEED -400
+#define BACKWARDS_SPEED 400
+#define STOP_SPEED 0
+
 /* Controller States */
 enum ControlState {
     IDLE,
@@ -29,14 +34,18 @@ class Controller {
         long _holdPos;                          // Hold Position
         long _releasePos;                       // Release Position
         unsigned long _holdTime;                // Hold Time
+        bool motorEnabled;                      // Motor Enabled Toggle
+        bool irsensorEnabled;                   // IR Sensor Enabled Toggle
     public:
         Controller();
         void begin(Settings&);
         void enableIRSensor();
         void disableIRSensor();
-        void setMotorManual();
-        void setMotorAuto();
-        void setMotorSpeed(float);
+        void enableMotor();
+        void disableMotor();
+        void moveForwards();
+        void moveBackwards();
+        void stop();
         void home();
         void updateSettings();
         bool update();

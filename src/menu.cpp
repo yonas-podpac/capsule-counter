@@ -16,8 +16,7 @@ Menu::Menu() :
     _lastJoystickChangeMs(0),
     _joystickChangeIntervalMs(180),
     _lastHelpChangeMs(0),
-    _helpScrollIntervalMs(50),
-    motorState(MotorState::STOPPED) {}
+    _helpScrollIntervalMs(50) {}
 
 /**
  * Menu Begin Function
@@ -32,6 +31,24 @@ void Menu::begin(Settings& settings) {
 }
 
 /**
+ * Menu Get Current Screen Function
+ * 
+ * Function used to get the current screen.
+ * 
+ * @return current screen
+ */
+Screen Menu::getCurrentScreen() { return drawer.getCurrentScreen(); }
+
+/**
+ * Menu Get Motor State Function
+ * 
+ * Function used to get the current motor state.
+ * 
+ * @return current motor state
+ */
+MotorState Menu::getMotorState() { return drawer.getMotorState(); }
+
+/**
  * Menu Set Current Count Function
  * 
  * Function used to set the current count from the IR Sensor.
@@ -44,15 +61,6 @@ void Menu::setCurrentCount(int count) {
         _redraw = true;
     }
 }
-
-/**
- * Menu Set Motor State Function
- * 
- * Function for setting the current state of the stepper motor.
- * 
- * @param state current motor state
- */
-void Menu::setMotorState(MotorState state) { motorState = state; }
 
 /**
  * Menu Handle Transition Function
@@ -172,7 +180,6 @@ void Menu::handleMainMenu(Direction dir) {
         switch(drawer.idxTracker.getMainIndex()) {
             case 0: // 0th Index: Count Screen
                 drawer.setCurrentScreen(Screen::COUNT);
-                // TODO: motor control?
                 _redraw = true;
                 break;
             case 1: // 1st Index: Bulk Select Screen
@@ -191,8 +198,6 @@ void Menu::handleMainMenu(Direction dir) {
                 drawer.setCurrentScreen(Screen::SETTINGS);
                 break;
         }
-
-        // TODO: update controller?
     }
 }
 
@@ -247,12 +252,10 @@ void Menu::handleSelection(Direction dir) {
         else {
             drawer.disableContinuousCount();
             drawer.setBulkLimit();
-            // TODO: Set controller limit
         }
 
         // Change Screen
         drawer.setCurrentScreen(Screen::COUNT);
-        // TODO: set controller settings
     }
 
     // Handle Joystick Left
@@ -306,7 +309,16 @@ void Menu::handleNewCount(Direction dir) {
  * 
  * @param dir joystick direction
  */
-void Menu::handleManual(Direction dir) {}
+void Menu::handleManual(Direction dir) {
+    // Handle Joystick Up
+    if (dir == Direction::UP) drawer.setMotorState(MotorState::FORWARDS);
+    // Handle Joystick Down
+    else if (dir == Direction::DOWN) drawer.setMotorState(MotorState::BACKWARDS);
+    // Handle Joystick None
+    else if (dir == Direction::NONE) drawer.setMotorState(MotorState::STOPPED);
+    // Handle Joystick Left
+    else if (dir == Direction::LEFT) drawer.setCurrentScreen(Screen::MAIN);
+}
 
 /**
  * Menu Handle Home Function

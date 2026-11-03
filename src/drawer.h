@@ -35,6 +35,16 @@ enum class Screen {
     FACTORY_RESET                   // Factory Reset - Set all settings to default values
 };
 
+/* Motor State */
+enum MotorState {
+    STOPPED,
+    FORWARDS,
+    BACKWARDS,
+    NOT_HOMED,
+    HOMING,
+    HOMED,
+};
+
 /**
  * Drawer Class
  * 
@@ -45,6 +55,7 @@ class Drawer{
         Display display;            // Display Object
         Screen screen;              // Current Screen
         Settings settings;          // Preferences Manager Object
+        MotorState motorState;      // Motor State
         // Menu Items
         const char* _menuItems[MENU_COUNT] = {
             "1. Count Capsules",                    // Count Capsules Menu Message
@@ -117,6 +128,8 @@ class Drawer{
         Screen getCurrentScreen();
         void setCurrentScreen(Screen);
         int getScreenIndex(Screen);
+        MotorState getMotorState();
+        void setMotorState(MotorState);
         void enableContinuousCount();
         void disableContinuousCount();
         void setBulkLimit();

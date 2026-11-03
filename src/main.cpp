@@ -3,11 +3,13 @@
 
 // Define Class Objects
 struct Menu2ControlCommand {
-  bool enableIR;
-  bool motorManual;
-  int motorSpeed;
-  bool home;
-  bool settingsChange;
+  // bool enableIR;
+  // bool motorManual;
+  // int motorSpeed;
+  // bool home;
+  // bool settingsChange;
+  bool enableMotor;
+  MotorState motorState;
 };
 struct Control2MenuCommand {
   int currentCount;
@@ -32,9 +34,22 @@ void controllerHandlerTask(void * pvParameters) {
   // Print Core task is running on
   Serial.print("[Main] Controller Task running on core ");
   Serial.println(xPortGetCoreID());
+  Menu2ControlCommand rxCmd;
 
   // Build Task Update Loop
   for(;;) {
+    // Check Menu to Control Command Queue
+    if (xQueueReceive(menu2ControlCommandQueue, &rxCmd, 0) == pdTRUE) {
+      // Handle Enabling IR Sensor
+      // TODO: implement feature
+      // Handle Enabling Motor
+      if (rxCmd.enableMotor) controller.enableMotor();
+      else controller.disableMotor();
+      // Handle Motor Direction
+      if (rxCmd.motorState == MotorState::FORWARDS) controller.moveForwards();
+      if (rxCmd.motorState == MotorState::BACKWARDS) controller.moveBackwards();
+      if (rxCmd.motorState == MotorState::STOPPED) controller.stop();
+    }
     if (controller.update()) {
       vTaskDelay(pdMS_TO_TICKS(10));
     }
@@ -51,10 +66,33 @@ void menuHandlerTask(void * pvParameters) {
   // Print Core task is running on
   Serial.print("[Main] Menu Task running on core ");
   Serial.println(xPortGetCoreID());
+  Menu2ControlCommand cmd;
 
   // Build Task Update Loop
   for (;;) {
     menu.update();
+    Screen curr = menu.getCurrentScreen();
+    // Handle Count Screen
+    if (curr == Screen::COUNT) {
+      // TODO: Enable IR Sensor
+      // TODO: Enable Motor
+      // TODO: Set limit
+      cmd.enableMotor = true;
+    }
+    // Handle Manual Screen
+    else if (curr == Screen::MANUAL) {
+      cmd.enableMotor = true;
+      cmd.motorState = menu.getMotorState();
+      // TODO: Enable Motor
+      // TODO: Check direction of drive
+    }
+    // Handle Other Screens
+    else {
+      // TODO: Disable IR Sensor
+      // TODO: Disable Motor
+      cmd.enableMotor = false;
+    }
+    xQueueSend(menu2ControlCommandQueue, &cmd, portMAX_DELAY);
     delay(1);
   }
 }
