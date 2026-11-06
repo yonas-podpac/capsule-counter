@@ -15,9 +15,9 @@
 #define MOTOR_PULSE_WIDTH_KEY "pulse-width-key"     // Motor Pulse-Width key name
 #define DEFAULT_MOTOR_PULSE_WIDTH 20                // Default Motor Pulse-Width
 #define MOTOR_MAX_SPEED_KEY "max-speed-key"         // Motor Max-Speed key name
-#define DEFAULT_MOTOR_MAX_SPEED 100                 // Default Motor Max-Speed
+#define DEFAULT_MOTOR_MAX_SPEED 4000                // Default Motor Max-Speed
 #define MOTOR_ACCELERATION_KEY "accel-key"          // Motor Acceleration key name
-#define DEFAULT_MOTOR_ACCELERATION 200              // Default Motor Acceleration
+#define DEFAULT_MOTOR_ACCELERATION 2000             // Default Motor Acceleration
 #define HALL_SENSITIVITY_KEY "sensitivity-key"      // Hall Sensor Sensitivity key name
 #define DEFAULT_HALL_SENSITIVITY 1000               // Default Hall Sensor Sensitivity
 #define HELP_TIME_KEY "help-time"                   // Help Message Cycle Time key name

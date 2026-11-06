@@ -38,7 +38,12 @@ class Controller {
         bool irsensorEnabled;                   // IR Sensor Enabled Toggle
     public:
         Controller();
+        // Controller(const Controller&) = delete;
+        // Controller& operator = (const Controller&) = delete;
         void begin(Settings&);
+        void setLimit(int);
+        int getCurrentCount();
+        bool motorHomed();
         void enableIRSensor();
         void disableIRSensor();
         void enableMotor();

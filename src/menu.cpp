@@ -11,6 +11,7 @@ Joystick jystk;
 Menu::Menu() :
     drawer(drw),
     joystick(jystk),
+    _updateAvailable(false),
     _redraw(true),
     _logoIntervalMs(5000),
     _lastJoystickChangeMs(0),
@@ -29,6 +30,32 @@ void Menu::begin(Settings& settings) {
     Serial.println("[Menu] Setup Complete");
     drawer.draw();
 }
+
+/**
+ * Menu Update Available Function
+ * 
+ * Function used to determine if the menu class has updates
+ * available for the controller class.
+ * 
+ * @return true if updates area available for the controller
+ */
+bool Menu::updateAvailable() { return _updateAvailable; }
+
+/**
+ * Menu Reset Update Available Function
+ * 
+ * Function used to reset the variable.
+ */
+void Menu::resetUpdateAvailable() { _updateAvailable = false; }
+
+/**
+ * Menu Get Bulk Limit Function
+ * 
+ * Function used to get the selected bulk limit.
+ * 
+ * @return selected bulk limit
+ */
+int Menu::getBulkLimit() { return drawer.getBulkLimit(); }
 
 /**
  * Menu Get Current Screen Function
@@ -59,6 +86,23 @@ void Menu::setCurrentCount(int count) {
     if (count != drawer.getLastDisplayedCount()) {
         drawer.setLastDisplayedCount(count);
         _redraw = true;
+    }
+}
+
+/**
+ * Menu Set Motor Homed Function
+ * 
+ * Function used to set the homing state of the motor.
+ * 
+ * @param state motor homed state
+ */
+void Menu::setMotorHomed(bool state) {
+    if (state && drawer.getMotorState() != MotorState::HOMED) {
+        drawer.setMotorState(MotorState::HOMED);
+        _redraw = true;
+        Serial.println("[Menu] Motor homed");
+    } else if (!state && drawer.getMotorState() == MotorState::STOPPED) {
+        drawer.setMotorState(MotorState::NOT_HOMED);
     }
 }
 
@@ -252,6 +296,7 @@ void Menu::handleSelection(Direction dir) {
         else {
             drawer.disableContinuousCount();
             drawer.setBulkLimit();
+            _updateAvailable = true;
         }
 
         // Change Screen
@@ -310,6 +355,9 @@ void Menu::handleNewCount(Direction dir) {
  * @param dir joystick direction
  */
 void Menu::handleManual(Direction dir) {
+    // Check initial motor state
+    static MotorState curr = drawer.getMotorState();
+
     // Handle Joystick Up
     if (dir == Direction::UP) drawer.setMotorState(MotorState::FORWARDS);
     // Handle Joystick Down
@@ -318,6 +366,8 @@ void Menu::handleManual(Direction dir) {
     else if (dir == Direction::NONE) drawer.setMotorState(MotorState::STOPPED);
     // Handle Joystick Left
     else if (dir == Direction::LEFT) drawer.setCurrentScreen(Screen::MAIN);
+
+    if (curr != drawer.getMotorState()) _updateAvailable = true;
 }
 
 /**
@@ -328,7 +378,17 @@ void Menu::handleManual(Direction dir) {
  * 
  * @param dir joystick direction
  */
-void Menu::handleHome(Direction dir) {}
+void Menu::handleHome(Direction dir) {
+    // Handle Joystick Right
+    if (dir == Direction::RIGHT) {
+        if (drawer.getMotorState() == MotorState::NOT_HOMED) {
+            drawer.setMotorState(MotorState::HOMING);
+            _updateAvailable = true;
+        }
+    }
+    // Handle Joystick Left
+    else if (dir == Direction::LEFT) drawer.setCurrentScreen(Screen::MAIN);
+}
 
 /**
  * Menu Handle Settings Function

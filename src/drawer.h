@@ -132,6 +132,7 @@ class Drawer{
         void setMotorState(MotorState);
         void enableContinuousCount();
         void disableContinuousCount();
+        int getBulkLimit();
         void setBulkLimit();
         size_t getBulkOptionsCount();
         void setBulkOptionsCount(size_t);

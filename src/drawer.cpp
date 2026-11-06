@@ -11,7 +11,7 @@
 Drawer::Drawer() :
     display(),
     screen(Screen::LOGO),
-    motorState(MotorState::STOPPED),
+    motorState(MotorState::NOT_HOMED),
     idxTracker(),
     _continuousCount(true),
     _bulkLimit(60),
@@ -146,6 +146,15 @@ size_t Drawer::getBulkOptionsCount() { return _bulkOptionsCount; }
  * @param count number of available bulk options
  */
 void Drawer::setBulkOptionsCount(size_t count) { _bulkOptionsCount = count; }
+
+/**
+ * Drawer Get Bulk Limit Function
+ * 
+ * Function used to get the selected bulk limit.
+ * 
+ * @return selected bulk limit
+ */
+int Drawer::getBulkLimit() { return _bulkLimit; }
 
 /**
  * Drawer Set Bulk Limit Function
@@ -358,7 +367,24 @@ void Drawer::drawManualScreen(U8G2& u8g2) {
  * 
  * Function used to draw the homing motor screen.
  */
-void Drawer::drawHomeScreen(U8G2& u8g2) {}
+void Drawer::drawHomeScreen(U8G2& u8g2) {
+    // Draw Header Line
+    u8g2.setFont(u8g2_font_6x10_tf);
+    u8g2.drawStr(0, 10, "Home Motor:");
+
+    // Draw Current State of Homing
+    u8g2.setFont(u8g2_font_logisoso16_tf);
+    if (motorState == MotorState::NOT_HOMED) {
+        u8g2.drawStr(10, 42, "Not Homed");
+    } else if (motorState == MotorState::HOMING) {
+        u8g2.drawStr(10, 42, "Homing");
+    } else if (motorState == MotorState::HOMED) {
+        u8g2.drawStr(10, 42, "Homed");
+    }
+    
+    // Draw Help Message
+    drawHelpMessage(u8g2);
+}
 
 /**
  * Drawer Draw Settings Screen Function

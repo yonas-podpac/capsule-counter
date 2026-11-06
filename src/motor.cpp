@@ -6,10 +6,13 @@
  * Function used to set the stepper motor variables.
  */
 Motor::Motor() :
-    _stepper(1, STEP_PIN, DIR_PIN),
+    // _stepper(1, STEP_PIN, DIR_PIN),
+    _stepper(AccelStepper::DRIVER, STEP_PIN, DIR_PIN),
     _prox_sensor(),
     _busy(false),
+    _shouldHome(false),
     _homed(false),
+    homingState(HomingState::IDLE),
     _currentSpeed(0),
     _stepInterval(0),
     _lastStepTime(0),
@@ -19,15 +22,38 @@ Motor::Motor() :
  * Stepper Motor Begin Function
  * 
  * Function used to set the pins and setup proximity sensor.
+ * 
+ * @param pw pulse width
+ * @param ms max speed
+ * @param a acceleration
+ * @param hs hall sensor sensitivity
  */
-void Motor::begin() {
+void Motor::begin(int pw, float ms, float a, int hs) {
     pinMode(ENABLE_PIN, OUTPUT);
+    // _stepper.setEnablePin(ENABLE_PIN);
+    Serial.print("[Stepper Motor] Pulse width set to ");
+    Serial.println(pw);
+    _stepper.setMinPulseWidth(pw);
+    Serial.print("[Stepper Motor] Max Speed set to ");
+    Serial.println(ms);
+    _stepper.setMaxSpeed(ms);
+    Serial.print("[Stepper Motor] Acceleration set to ");
+    Serial.println(a);
+    _stepper.setAcceleration(a);
+    Serial.print("[Stepper Motor] Prox sensor sensitiviy set to ");
+    Serial.println(hs);
+    _prox_sensor.setSensitivity(hs);
+    _stepper.setPinsInverted(false, true, true);
+    
+    enable();
+    _stepper.setSpeed(-400);
+    // setSpeed(-400);
+    // _stepper.enableOutputs();
+    // // Initially disable motor
+    // disable();
 
-    // Initially disable motor
-    disable();
-
-    // Initialise Proximity Sensor
-    _prox_sensor.begin();
+    // // Initialise Proximity Sensor
+    // _prox_sensor.begin();
 
     Serial.println("[Stepper Motor] Setup Complete");
 }
@@ -37,14 +63,34 @@ void Motor::begin() {
  * 
  * Function used to enable the motor driver.
  */
-void Motor::enable() { digitalWrite(ENABLE_PIN, LOW); }
+void Motor::enable() { 
+    Serial.println("[Stepper Motor] Enabled");
+    digitalWrite(ENABLE_PIN, LOW); 
+}
 
 /**
  * Stepper Motor Disable Function
  * 
  * Function used to disable the motor driver.
  */
-void Motor::disable() { digitalWrite(ENABLE_PIN, HIGH); }
+void Motor::disable() { 
+    Serial.println("[Stepper Motor] Disabled");
+    digitalWrite(ENABLE_PIN, HIGH); 
+}
+
+/**
+ * Stepper Motor Enable Drive Function
+ * 
+ * Function used to enable the drive toggle.
+ */
+void Motor::enableDrive() { _drive = true; }
+
+/**
+ * Stepper Motor Disable Drive Function
+ * 
+ * Function used to disable the drive toggle.
+ */
+void Motor::disableDrive() { _drive = false; }
 
 /**
  * Stepper Motor Move To Function
@@ -107,23 +153,33 @@ bool Motor::isHomed() { return _homed; }
  * Function used to home stepper motor.
  */
 void Motor::home() {
-    // Enable A4988 Dirver
-    enable();
-    // Approach Sensor
-    _stepper.moveTo(100000);    // ridiculously big number
-    while(_prox_sensor.isOpen()) _stepper.run();
+    _shouldHome = true;
+    homingState = HomingState::APPROACHING_SENSOR;
+    _stepper.moveTo(100000);
+    Serial.println("[Stepper Motor] Commencing homing sequence");
+    // // Enable A4988 Dirver
+    // enable();
+    // setSpeed(100);
+    // // Approach Sensor
+    // Serial.println("[Stepper Motor] Starting to approach proximity sensor");
+    // _stepper.moveTo(100000);    // ridiculously big number
+    // while(_prox_sensor.isOpen()) _stepper.run();
+    // Serial.println("[Stepper Motor] Proximity sensor triggered!");
 
-    // Stop & Reset
-    _stepper.setCurrentPosition(0);
+    // // Stop & Reset
+    // _stepper.setCurrentPosition(0);
 
-    // Precision Back-Off
-    _stepper.moveTo(-200);
-    while(!_prox_sensor.isOpen()) _stepper.runSpeed();
+    // // Precision Back-Off
+    // Serial.println("[Stepper Motor] Backing off from proximity sensor");
+    // _stepper.moveTo(-200);
+    // while(!_prox_sensor.isOpen()) _stepper.runSpeed();
+    // Serial.println("[Stepper Motor] Proximity sensor no longer triggered. Resetting zero position");
 
-    // Reset Home Position
-    _stepper.setCurrentPosition(0);
-    _homed = true;
-    Serial.println("[Stepper Motor] Homed!");
+
+    // // Reset Home Position
+    // _stepper.setCurrentPosition(0);
+    // _homed = true;
+    // Serial.println("[Stepper Motor] Homed!");
 }
 
 /**
@@ -205,62 +261,60 @@ void Motor::stepBackward() {
 }
 
 /**
- * Stepper Motor Set Pulse Width Function
- * 
- * Used to set the motor's pulse width using the AccelStepper's
- * setMinPulseWidth function.
- * 
- * @param pw motor pulse-width
- */
-void Motor::setPulseWidth(int pw) { _stepper.setMinPulseWidth(pw); }
-
-/**
- * Stepper Motor Set Max Speed Function
- * 
- * Used to set the motor's maximum speed using the AccelStepper's
- * setMaxSpeed function.
- * 
- * @param ms motor max-speed (steps/second)
- */
-void Motor::setMaxSpeed(float ms) { _stepper.setMaxSpeed(ms); }
-
-/**
- * Stepper Motor Set Acceleration Function
- * 
- * Used to set the motor's acceleration using the AccelStepper's
- * setAcceleration function.
- * 
- * @param a motor acceleration (steps/second^2)
- */
-void Motor::setAcceleration(float a) { _stepper.setAcceleration(a); }
-
-/**
- * Stepper Motor Set Hall Sensor Sensitivity Function
- * 
- * Used to set the hall sensor's sensitivity.
- * 
- * @param s hall sensor sensitivity
- */
-void Motor::setHallSensitivity(int s) { _prox_sensor.setSensitivity(s); }
-
-/**
  * Stepper Motor Update Function
  * 
  * Function used to check if the stepper motor must be driven,
  * if so, then the busy variable should be toggled.
  */
 void Motor::update() {
-    // Use AccelStepper's distanceToGo function
-    long distanceToGo = _stepper.distanceToGo();
-    if (distanceToGo != 0) {
-        Serial.print("[Stepper Motor] Distance to go: ");
-        Serial.println(distanceToGo);
-        _stepper.run();
-    }
+    Serial.println("[Stepper Motor] test");
+    bool stepped = _stepper.runSpeed();
+    if (stepped) Serial.println("[Stepper Motor] Stepped");
+    // // Use AccelStepper's distanceToGo function
+    // long distanceToGo = _stepper.distanceToGo();
+    // if (distanceToGo != 0) {
+    //     Serial.print("[Stepper Motor] Distance to go: ");
+    //     Serial.println(distanceToGo);
+    //     _stepper.run();
+    // }
 
-    // Target Reached
-    else {
-        // disable();   // Uncomment if holding torque not required
-        _busy = false;
-    }
+    // // Target Reached
+    // else {
+    //     // disable();   // Uncomment if holding torque not required
+    //     _busy = false;
+    // }
+
+
+
+
+
+    // if (_drive) {
+    //     _stepper.runSpeed();
+    // }
+
+    // if (_shouldHome) {
+    //     switch(homingState) {
+    //         case HomingState::APPROACHING_SENSOR:
+    //             _stepper.run();
+
+    //             // Check if Sensor has been Triggered
+    //             if (!_prox_sensor.isOpen()) {
+    //                 _stepper.setCurrentPosition(0);
+    //                 _stepper.moveTo(-200);
+    //                 homingState = HomingState::BACKING_OFF;
+    //             }
+    //             break;
+    //         case HomingState::BACKING_OFF:
+    //             _stepper.run();
+
+    //             // Check if Sensor is no longer Triggered
+    //             if (_prox_sensor.isOpen()) {
+    //                 _stepper.setCurrentPosition(0);
+    //                 _homed = true;
+    //                 _shouldHome = false;
+    //                 homingState = HomingState::COMPLETE;
+    //                 Serial.println("[Stepper Motor] Homing complete!");
+    //             }
+    //     };
+    // }
 }

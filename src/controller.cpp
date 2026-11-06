@@ -25,17 +25,40 @@ Controller::Controller():
  */
 void Controller::begin(Settings& sett) {
     sensor.begin();
-    motor.begin();
     settings = sett;
     _holdPos = settings.getHoldPosition();
     _releasePos = settings.getReleasePosition();
     _holdTime = settings.getHoldTime();
-    motor.setPulseWidth(settings.getMotorPulseWidth());
-    motor.setMaxSpeed(settings.getMotorMaxSpeed());
-    motor.setAcceleration(settings.getMotorAcceleration());
-    motor.setHallSensitivity(settings.getHallSensitivity());
+    motor.begin(settings.getMotorPulseWidth(), settings.getMotorMaxSpeed(), settings.getMotorAcceleration(), settings.getHallSensitivity());
     Serial.println("[Controller] Setup Complete");
 }
+
+/**
+ * Controller Set Limit Function
+ * 
+ * Function for setting the bulk limit.
+ * 
+ * @param limit new bulk limit
+ */
+void Controller::setLimit(int limit) { _bulkLimit = limit; }
+
+/**
+ * Controller Get Current Count
+ * 
+ * Function for getting the current capsule count by the IR sensor.
+ * 
+ * @return current capsule count
+ */
+int Controller::getCurrentCount() { return sensor.getCount(); }
+
+/**
+ * Controller Motor Homed Function
+ * 
+ * Function that checks if the motor is homed.
+ * 
+ * @return true if motor is homed
+ */
+bool Controller::motorHomed() { return motor.isHomed(); }
 
 /**
  * Controller Enable IR Sensor Function
@@ -95,21 +118,41 @@ void Controller::disableMotor() {
  * 
  * Function for moving the motor forwards.
  */
-void Controller::moveForwards() { motor.setSpeed(FORWARDS_SPEED); }
+void Controller::moveForwards() {
+    motor.setSpeed(FORWARDS_SPEED);
+    motor.enableDrive();
+}
 
 /**
  * Controller Move Backwards Function
  * 
  * Function for moving the motor backwards.
  */
-void Controller::moveBackwards() { motor.setSpeed(BACKWARDS_SPEED); }
+void Controller::moveBackwards() {
+    motor.setSpeed(BACKWARDS_SPEED);
+    motor.enableDrive();
+}
 
 /**
  * Controller Stop Function
  * 
  * Function for stopping the motor.
  */
-void Controller::stop() { motor.setSpeed(STOP_SPEED); }
+void Controller::stop() {
+    motor.setSpeed(STOP_SPEED);
+    motor.disableDrive();
+}
+
+/**
+ * Controller Home Function
+ * 
+ * Function for homing the motor.
+ */
+void Controller::home() { 
+    Serial.println("[Controller] Motor homing sequence commencing");
+    motor.home();
+    Serial.println("[Controller] Motor homing sequence complete");
+}
 
 /**
  * Controller Update Settings Function
@@ -127,6 +170,7 @@ void Controller::updateSettings() {/* TODO: implement */}
  */
 bool Controller::update() {
     // Execute Update Functions
+    Serial.println("[Controller] test");
     sensor.update();
     motor.update();
     bool busy = motor.isBusy();
