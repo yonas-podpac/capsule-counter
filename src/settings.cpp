@@ -1,7 +1,7 @@
 #include "settings.h"
 
 /**
- * Settings Initialiser
+ * Settings Constructor
  * 
  * Sets up the Settings Object.
  */
@@ -309,7 +309,7 @@ void Settings::putHallSensitivity(int s) {
     if (s > 0 || s <= 4095) {
         pref.putInt(HALL_SENSITIVITY_KEY, s);
     } else {
-        Serial.println("ERROR: Hall Sensor sensitivity outside of range of 0 and 4095!");
+        // Serial.println("ERROR: Hall Sensor sensitivity outside of range of 0 and 4095!");
     }
 }
 

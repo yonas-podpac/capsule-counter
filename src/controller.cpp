@@ -4,7 +4,7 @@ IRSensor s;
 Motor m;
 
 /**
- * Controller Initialiser
+ * Controller Constructor
  * 
  * Function used to initialise the controller variables.
  */
@@ -13,8 +13,9 @@ Controller::Controller():
     motor(m),
     _currentState(ControlState::IDLE),
     _bulkLimit(0),
-    motorEnabled(false),
-    irsensorEnabled(false) {}
+    irsensorEnabled(false),
+    motorForwards(false),
+    motorBackwards(false) {}
 
 /**
  * Controller Begin Function
@@ -29,7 +30,7 @@ void Controller::begin(Settings& sett) {
     _holdPos = settings.getHoldPosition();
     _releasePos = settings.getReleasePosition();
     _holdTime = settings.getHoldTime();
-    motor.begin(settings.getMotorPulseWidth(), settings.getMotorMaxSpeed(), settings.getMotorAcceleration(), settings.getHallSensitivity());
+    motor.begin(settings.getHallSensitivity());
     Serial.println("[Controller] Setup Complete");
 }
 
@@ -58,7 +59,8 @@ int Controller::getCurrentCount() { return sensor.getCount(); }
  * 
  * @return true if motor is homed
  */
-bool Controller::motorHomed() { return motor.isHomed(); }
+// bool Controller::motorHomed() { /* return motor.isHomed(); */ }
+bool Controller::motorHomed() { return false; }
 
 /**
  * Controller Enable IR Sensor Function
@@ -88,39 +90,16 @@ void Controller::disableIRSensor() {
 }
 
 /**
- * Controller Enable Motor Function
- * 
- * Function for enabling the motor.
- */
-void Controller::enableMotor() {
-    if (!motorEnabled) {
-        Serial.println("[Controller] Motor enabled");
-        motor.enable();
-        motorEnabled = true;
-    }
-}
-
-/**
- * Controller Disable Motor Function
- * 
- * Function for disabling the motor.
- */
-void Controller::disableMotor() {
-    if (motorEnabled) {
-        Serial.println("[Controller] Motor disabled");
-        motor.disable();    // TODO: is this correct?
-        motorEnabled = false;
-    }
-}
-
-/**
  * Controller Move Forwards Function
  * 
  * Function for moving the motor forwards.
  */
 void Controller::moveForwards() {
-    motor.setSpeed(FORWARDS_SPEED);
-    motor.enableDrive();
+    if (!motorForwards) {
+        motor.moveForwards(200);
+        motorForwards = true;
+        motorBackwards = false;
+    }
 }
 
 /**
@@ -129,8 +108,11 @@ void Controller::moveForwards() {
  * Function for moving the motor backwards.
  */
 void Controller::moveBackwards() {
-    motor.setSpeed(BACKWARDS_SPEED);
-    motor.enableDrive();
+    if (!motorBackwards) {
+        motor.moveBackwards(200);
+        motorBackwards = true;
+        motorForwards = false;
+    }
 }
 
 /**
@@ -139,8 +121,9 @@ void Controller::moveBackwards() {
  * Function for stopping the motor.
  */
 void Controller::stop() {
-    motor.setSpeed(STOP_SPEED);
-    motor.disableDrive();
+    motor.stop();
+    motorForwards = false;
+    motorBackwards = false;
 }
 
 /**
@@ -148,11 +131,7 @@ void Controller::stop() {
  * 
  * Function for homing the motor.
  */
-void Controller::home() { 
-    Serial.println("[Controller] Motor homing sequence commencing");
-    motor.home();
-    Serial.println("[Controller] Motor homing sequence complete");
-}
+void Controller::home() { motor.home(); }
 
 /**
  * Controller Update Settings Function
@@ -170,11 +149,11 @@ void Controller::updateSettings() {/* TODO: implement */}
  */
 bool Controller::update() {
     // Execute Update Functions
-    Serial.println("[Controller] test");
     sensor.update();
     motor.update();
-    bool busy = motor.isBusy();
-    if (motorEnabled) motor.run();
+    // bool busy = motor.isBusy();
+    // if (motorEnabled) motor.run();
 
-    return busy;
+    // return busy;
+    return false;
 }

@@ -1,7 +1,7 @@
 #include "index-tracker.h"
 
 /**
- * Index Tracker Initialiser
+ * Index Tracker Constructor
  * 
  * Function that initialises the variables.
  */

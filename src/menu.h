@@ -11,7 +11,6 @@ class Menu {
     private:
         Drawer drawer;
         Joystick joystick;
-        bool _updateAvailable;
         bool _redraw;                                   // Redraw Toggle
         unsigned long _logoIntervalMs;                  // Logo Interval (milliseconds)
         unsigned long _lastJoystickChangeMs;            // Joystick Change Tracker (milliseconds)
@@ -41,11 +40,10 @@ class Menu {
     public:
         Menu();
         void begin(Settings&);
-        bool updateAvailable();
-        void resetUpdateAvailable();
         int getBulkLimit();
         Screen getCurrentScreen();
         MotorState getMotorState();
+        void setMotorState(MotorState);
         void setCurrentCount(int);
         void setMotorHomed(bool);
         void update();

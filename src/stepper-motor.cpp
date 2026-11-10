@@ -1,14 +1,14 @@
 #include "stepper-motor.h"
 
 /**
- * Stepper Motor Initialiser
+ * Stepper Motor Constructor
  * 
  * Sets up the Stepper Motor's variables, including setting up the 
  * AccelStepper object, setting up the Hall-Sensor and setting the
  * busy variable to false.
  */
 StepperMotor::StepperMotor():
-    _stepper(1, STEPPIN, DIRPIN),
+    // _stepper(1, STEPPIN, DIRPIN),
     _prox_sensor(),
     busy(false),
     _homed(false) {}
@@ -58,7 +58,7 @@ void StepperMotor::moveTo(long absoluteSteps) {
     // Enable A4988 driver
     enable();
     // Use AccelStepper moveTo function for Absolute Motion
-    _stepper.moveTo(absoluteSteps);
+    // _stepper.moveTo(absoluteSteps);
     Serial.print("Distance to Travel: ");
     Serial.println(absoluteSteps);
     busy = true;
@@ -76,7 +76,7 @@ void StepperMotor::moveRelative(long relativeSteps) {
     // Enable A4988 driver
     enable();
     // Use AccelStepper move function for Relative Motion
-    _stepper.move(relativeSteps);
+    // _stepper.move(relativeSteps);
     busy = true;
 }
 
@@ -101,15 +101,15 @@ bool StepperMotor::isHomed() { return _homed; }
 void StepperMotor::update() {
     // Using the AccelStepper's distanceToGo function, check if
     // motor should be driven
-    long distanceToGo = _stepper.distanceToGo();
+    // long distanceToGo = _stepper.distanceToGo();
     if (busy) {
-        Serial.print("Distance to go: ");
-        Serial.println(distanceToGo);
+        // Serial.print("Distance to go: ");
+        // Serial.println(distanceToGo);
     }
-    if (_stepper.distanceToGo() != 0) {
-        Serial.println("Motor running");
-        _stepper.run();
-    }
+    // if (_stepper.distanceToGo() != 0) {
+    //     Serial.println("Motor running");
+    //     _stepper.run();
+    // }
 
     // Optional: Auto-disable power when target is reached to 
     // save energy/heat
@@ -130,24 +130,24 @@ void StepperMotor::home() {
     enable();
     // 1. Approach Sensor
     // _stepper.setSpeed(-300);
-    _stepper.moveTo(100000);
-    while(_prox_sensor.isOpen()) {
-        _stepper.run();
-    }
+    // _stepper.moveTo(100000);
+    // while(_prox_sensor.isOpen()) {
+        // _stepper.run();
+    // }
 
     // 2. Immediate Stop and Reset
-    _stepper.setCurrentPosition(0);
+    // _stepper.setCurrentPosition(0);
 
     // 3. Precision Back-off
     // Move away until sensor is clears, then stop
-    _stepper.moveTo(-200);
-    while(!_prox_sensor.isOpen()) {
-        _stepper.runSpeed();
-    }
+    // _stepper.moveTo(-200);
+    // while(!_prox_sensor.isOpen()) {
+        // _stepper.runSpeed();
+    // }
 
     // Final zeroing at the exact release point
-    _stepper.setCurrentPosition(0);
-    _homed = true;
+    // _stepper.setCurrentPosition(0);
+    // _homed = true;
 }
 
 void StepperMotor::setSpeed(float speed) {
@@ -207,7 +207,7 @@ void StepperMotor::stepBackward() {
  * 
  * @param pw motor pulse-width
  */
-void StepperMotor::setPulseWidth(int pw) { _stepper.setMinPulseWidth(pw); }
+void StepperMotor::setPulseWidth(int pw) {/* _stepper.setMinPulseWidth(pw); */}
 
 /**
  * Stepper Motor Set Max Speed Function
@@ -217,7 +217,7 @@ void StepperMotor::setPulseWidth(int pw) { _stepper.setMinPulseWidth(pw); }
  * 
  * @param ms motor max-speed (steps/second)
  */
-void StepperMotor::setMaxSpeed(float ms) { _stepper.setMaxSpeed(ms); }
+void StepperMotor::setMaxSpeed(float ms) {/* _stepper.setMaxSpeed(ms); */}
 
 /**
  * Stepper Motor Set Acceleration Function
@@ -227,7 +227,7 @@ void StepperMotor::setMaxSpeed(float ms) { _stepper.setMaxSpeed(ms); }
  * 
  * @param a motor acceleration (steps/second^2)
  */
-void StepperMotor::setAcceleration(float a) { _stepper.setAcceleration(a); }
+void StepperMotor::setAcceleration(float a) {/* _stepper.setAcceleration(a); */}
 
 /**
  * Stepper Motor Set Hall Sensor Sensitivity Function

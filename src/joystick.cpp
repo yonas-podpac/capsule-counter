@@ -1,7 +1,7 @@
 #include "joystick.h"
 
 /**
- * Joystick Initialiser
+ * Joystick Constructor
  * 
  * Sets up the Joystick's pins as input pins, sets the resolution
  * on reading the analog signals, and calibrates the centre position

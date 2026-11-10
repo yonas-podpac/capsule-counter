@@ -1,7 +1,7 @@
 #include "logic-handler.h"
 
 /**
- * Logic Handler Initialiser
+ * Logic Handler Constructor
  * 
  * Sets up the Logic Handler's variables, including setting up
  * the current state to Idle, setting the IR Sensor class, the 

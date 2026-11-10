@@ -4,7 +4,7 @@
 IRSensor* IRSensor::instance = nullptr;
 
 /**
- * IR Sensor Initialiser
+ * IR Sensor Constructor
  * 
  * Function used to initialise the IR Sensor variables.
  */

@@ -4,7 +4,7 @@
 // IndexTracker i;
 
 /**
- * Drawer Initialiser
+ * Drawer Constructor
  * 
  * Function used to initialise the variables.
  */
@@ -350,12 +350,12 @@ void Drawer::drawManualScreen(U8G2& u8g2) {
 
     // Draw Current Direction of Drive
     u8g2.setFont(u8g2_font_logisoso16_tf);
-    if (motorState == MotorState::STOPPED) {
-        u8g2.drawStr(10, 42, "Stopped");
-    } else if (motorState == MotorState::FORWARDS) {
+    if (motorState == MotorState::FORWARDS) {
         u8g2.drawStr(10, 42, "Forwards");
     } else if (motorState == MotorState::BACKWARDS) {
         u8g2.drawStr(10, 42, "Backwards");
+    } else {
+        u8g2.drawStr(10, 42, "Stopped");
     }
     
     // Draw Help Message

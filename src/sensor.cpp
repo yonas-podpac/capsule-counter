@@ -4,7 +4,7 @@
 Sensor* Sensor::instance = nullptr;
 
 /**
- * Sensor Initialiser
+ * Sensor Constructor
  * 
  * Sets up the Sensor's variables, such as the count from the sensor,
  * the lastState and the last trigger time in microseconds.

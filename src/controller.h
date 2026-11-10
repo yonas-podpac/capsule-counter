@@ -34,20 +34,17 @@ class Controller {
         long _holdPos;                          // Hold Position
         long _releasePos;                       // Release Position
         unsigned long _holdTime;                // Hold Time
-        bool motorEnabled;                      // Motor Enabled Toggle
         bool irsensorEnabled;                   // IR Sensor Enabled Toggle
+        bool motorForwards;
+        bool motorBackwards;
     public:
         Controller();
-        // Controller(const Controller&) = delete;
-        // Controller& operator = (const Controller&) = delete;
         void begin(Settings&);
         void setLimit(int);
         int getCurrentCount();
         bool motorHomed();
         void enableIRSensor();
         void disableIRSensor();
-        void enableMotor();
-        void disableMotor();
         void moveForwards();
         void moveBackwards();
         void stop();

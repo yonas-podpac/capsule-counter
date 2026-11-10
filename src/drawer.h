@@ -41,6 +41,7 @@ enum MotorState {
     FORWARDS,
     BACKWARDS,
     NOT_HOMED,
+    SHOULD_HOME,
     HOMING,
     HOMED,
 };

@@ -1,7 +1,7 @@
 #include "prox-sensor.h"
 
 /**
- * Proximity Sensor Initialiser
+ * Proximity Sensor Constructor
  * 
  * Function used to intiailise the proximity sensor class object.
  */

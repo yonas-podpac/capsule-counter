@@ -1,7 +1,7 @@
 #include "display.h"
 
 /**
- * Dislay Initialiser
+ * Dislay Constructor
  * 
  * Sets up the U8G2 library using the predefined pins from
  * the display header file.

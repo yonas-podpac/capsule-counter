@@ -5,7 +5,6 @@
 struct Menu2ControlCommand {
   int limit;
   bool enableIR;
-  bool enableMotor;
   bool homeMotor;
   MotorState motorState;
 };
@@ -44,40 +43,36 @@ void controllerHandlerTask(void * pvParameters) {
   // Build Task Update Loop
   for(;;) {
     // Check Menu to Control Command Queue
-    // if (xQueueReceive(menu2ControlCommandQueue, &rxCmd, 0) == pdTRUE) {
-    //   // Handle Limit Setting
-    //   if (rxCmd.limit > 0) ctrl->setLimit(rxCmd.limit);
+    if (xQueueReceive(menu2ControlCommandQueue, &rxCmd, 0) == pdTRUE) {
+      // Handle Limit Setting
+      if (rxCmd.limit > 0) ctrl->setLimit(rxCmd.limit);
 
-    //   // Handle Enabling IR Sensor
-    //   if (rxCmd.enableIR) ctrl->enableIRSensor();
-    //   else ctrl->disableIRSensor();
+      // Handle Enabling IR Sensor
+      if (rxCmd.enableIR) ctrl->enableIRSensor();
+      else ctrl->disableIRSensor();
 
-    //   // Handle Enabling Motor
-    //   if (rxCmd.enableMotor) ctrl->enableMotor();
-    //   else ctrl->disableMotor();
+      // Handle Homing Motor
+      if (rxCmd.homeMotor) ctrl->home();
 
-    //   // Handle Homing Motor
-    //   if (rxCmd.homeMotor) ctrl->home();
-
-    //   // Handle Motor Direction
-    //   if (rxCmd.motorState == MotorState::FORWARDS) ctrl->moveForwards();
-    //   if (rxCmd.motorState == MotorState::BACKWARDS) ctrl->moveBackwards();
-    //   if (rxCmd.motorState == MotorState::STOPPED) ctrl->stop();
-    // }
+      // Handle Motor Direction
+      if (rxCmd.motorState == MotorState::FORWARDS) ctrl->moveForwards();
+      if (rxCmd.motorState == MotorState::BACKWARDS) ctrl->moveBackwards();
+      if (rxCmd.motorState == MotorState::STOPPED) ctrl->stop();
+    }
 
     // Update Controller
     ctrl->update();
     taskYIELD();
 
-    // // Check if Motor is Homed
-    // if (ctrl->motorHomed()) cmd.motorHomed = true;
-    // else cmd.motorHomed = false;
+    // Check if Motor is Homed
+    if (ctrl->motorHomed()) cmd.motorHomed = true;
+    else cmd.motorHomed = false;
 
-    // // Set Current Capsule Count
-    // cmd.currentCount = ctrl->getCurrentCount();
+    // Set Current Capsule Count
+    cmd.currentCount = ctrl->getCurrentCount();
 
-    // // Send Command from Controller to Menu
-    // xQueueSend(control2MenuCommandQueue, &cmd, portMAX_DELAY);
+    // Send Command from Controller to Menu
+    xQueueSend(control2MenuCommandQueue, &cmd, portMAX_DELAY);
   }
 }
 
@@ -108,41 +103,35 @@ void menuHandlerTask(void * pvParameters) {
     menu.update();
     Screen curr = menu.getCurrentScreen();
 
-    // Only update if available
-    if (menu.updateAvailable()) {
-      // Handle Count Screen
-      if (curr == Screen::COUNT) {
-        cmd.limit = menu.getBulkLimit();
-        cmd.enableIR = true;
-        cmd.enableMotor = true;
-      }
+    // Handle Count Screen
+    if (curr == Screen::COUNT) {
+      cmd.limit = menu.getBulkLimit();
+      cmd.enableIR = true;
+    }
 
-      // Handle Manual Screen
-      else if (curr == Screen::MANUAL) {
-        cmd.enableMotor = true;
-        cmd.motorState = menu.getMotorState();
-      }
+    // Handle Manual Screen
+    else if (curr == Screen::MANUAL) {
+      cmd.motorState = menu.getMotorState();
+    }
 
-      // Handle Home Screen
-      else if (curr == Screen::HOME) {
-        if (menu.getMotorState() == MotorState::HOMING) {
-          cmd.enableMotor = true;
-          cmd.homeMotor = true;
-        }
+    // Handle Home Screen
+    else if (curr == Screen::HOME) {
+      if (menu.getMotorState() == MotorState::SHOULD_HOME) {
+        menu.setMotorState(MotorState::HOMING);
+        cmd.homeMotor = true;
+      } else {
+        cmd.homeMotor = false;
       }
+    }
 
-      // Handle Other Screens
-      else {
-        cmd.enableIR = false;
-        cmd.enableMotor = false;
-      }
-      
-      // Reset update available
-      menu.resetUpdateAvailable();
+    // Handle Other Screens
+    else {
+      cmd.enableIR = false;
     }
 
     // Send Command from Menu to Controller
-    xQueueSend(menu2ControlCommandQueue, &cmd, portMAX_DELAY);
+    // xQueueSend(menu2ControlCommandQueue, &cmd, portMAX_DELAY);
+    xQueueSend(menu2ControlCommandQueue, &cmd, 0);
     // delay(1);
     vTaskDelay(pdMS_TO_TICKS(1));
   }
@@ -158,9 +147,9 @@ void setup() {
   controller->begin(settings);
   menu.begin(settings);
   Serial.println("[Main] Capsule Counter Setup Complete");
-  // xTaskCreatePinnedToCore(menuHandlerTask, "Menu Handling", 10000, NULL, 1, &menuTask, 0);
-  // delay(500);
-  xTaskCreatePinnedToCore(controllerHandlerTask, "Control Handling", 16384, controller, 2, &controllerTask, 1);
+  xTaskCreatePinnedToCore(menuHandlerTask, "Menu Handling", 10000, NULL, 1, &menuTask, 0);
+  delay(500);
+  xTaskCreatePinnedToCore(controllerHandlerTask, "Control Handling", 16384, controller, 3, &controllerTask, 1);
   delay(500);
 }
 
