@@ -17,6 +17,9 @@ class Menu {
         unsigned long _joystickChangeIntervalMs;        // Joystick Sensitivity (milliseconds)
         unsigned long _lastHelpChangeMs;                // Help Message Tracker (milliseconds)
         unsigned long _helpScrollIntervalMs;            // Help Message Interval (milliseconds)
+        bool _startCount;
+        bool _stopCount;
+        bool _counting;
         void handleTransition();
         void handleLogo();
         void handleMainMenu(Direction);
@@ -44,6 +47,9 @@ class Menu {
         Screen getCurrentScreen();
         MotorState getMotorState();
         void setMotorState(MotorState);
+        bool getStartCount();
+        void resetStartCount();
+        bool getStopCount();
         void setCurrentCount(int);
         void setMotorHomed(bool);
         void update();

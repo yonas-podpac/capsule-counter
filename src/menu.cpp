@@ -16,7 +16,10 @@ Menu::Menu() :
     _lastJoystickChangeMs(0),
     _joystickChangeIntervalMs(180),
     _lastHelpChangeMs(0),
-    _helpScrollIntervalMs(50) {}
+    _helpScrollIntervalMs(50),
+    _startCount(false),
+    _stopCount(true),
+    _counting(false) {}
 
 /**
  * Menu Begin Function
@@ -67,6 +70,31 @@ MotorState Menu::getMotorState() { return drawer.getMotorState(); }
 void Menu::setMotorState(MotorState state) { drawer.setMotorState(state); }
 
 /**
+ * Menu Get Start Count Function
+ * 
+ * Function used to check if controller should start counting.
+ * 
+ * @return true if controller should start counting
+ */
+bool Menu::getStartCount() { return _startCount; }
+
+/**
+ * Menu Reset Start Count Function
+ * 
+ * Function used to reset start count toggle.
+ */
+void Menu::resetStartCount() { _startCount = false; }
+
+/**
+ * Menu Get Stop Count Function
+ * 
+ * Function used to stop the controller from counting.
+ * 
+ * @return true if controller should stop counting
+ */
+bool Menu::getStopCount() { return _stopCount; }
+
+/**
  * Menu Set Current Count Function
  * 
  * Function used to set the current count from the IR Sensor.
@@ -88,11 +116,13 @@ void Menu::setCurrentCount(int count) {
  * @param state motor homed state
  */
 void Menu::setMotorHomed(bool state) {
-    if (state && drawer.getMotorState() != MotorState::HOMED) {
-        drawer.setMotorState(MotorState::HOMED);
-        _redraw = true;
-    } else if (!state && drawer.getMotorState() == MotorState::STOPPED) {
-        drawer.setMotorState(MotorState::NOT_HOMED);
+    if (drawer.getCurrentScreen() == Screen::HOME) {
+        if (state && drawer.getMotorState() != MotorState::HOMED) {
+            drawer.setMotorState(MotorState::HOMED);
+            _redraw = true;
+        } else if (!state && drawer.getMotorState() == MotorState::STOPPED) {
+            drawer.setMotorState(MotorState::NOT_HOMED);
+        }
     }
 }
 
@@ -113,7 +143,12 @@ void Menu::handleTransition() {
     _lastJoystickChangeMs = now;
 
     // Manage Transition
-    switch(drawer.getCurrentScreen()) {
+    Screen curr = drawer.getCurrentScreen();
+    if (curr != Screen::COUNT) {
+        _stopCount = true;
+        _counting = false;
+    }
+    switch(curr) {
         case Screen::LOGO:
             handleLogo();
             break;
@@ -247,6 +282,13 @@ void Menu::handleMainMenu(Direction dir) {
 void Menu::handleCount(Direction dir) {
     // Handle Joystick Left
     if (dir == Direction::LEFT) drawer.setCurrentScreen(Screen::MAIN);
+
+    // Set Toggles
+    if (!_counting) {
+        _startCount = true;
+        _stopCount = false;
+        _counting = true;
+    }
 }
 
 /**

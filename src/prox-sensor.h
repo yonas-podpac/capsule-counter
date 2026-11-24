@@ -14,7 +14,7 @@ class ProxSensor {
         int _sensitivity;       // Sensor Reading Sensitivity
     public:
         ProxSensor();
-        void begin();
+        // void begin();
         bool isOpen();
         void setSensitivity(int);
 };

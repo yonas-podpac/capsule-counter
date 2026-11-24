@@ -4,6 +4,8 @@
 // Define Class Objects
 struct Menu2ControlCommand {
   int limit;
+  bool startCount;
+  bool stopCount;
   bool enableIR;
   bool homeMotor;
   MotorState motorState;
@@ -48,8 +50,14 @@ void controllerHandlerTask(void * pvParameters) {
       if (rxCmd.limit > 0) ctrl->setLimit(rxCmd.limit);
 
       // Handle Enabling IR Sensor
-      if (rxCmd.enableIR) ctrl->enableIRSensor();
-      else ctrl->disableIRSensor();
+      if (rxCmd.startCount) {
+        ctrl->setState(ControlState::COUNT);
+        ctrl->enableIRSensor();
+      } else if (rxCmd.stopCount && ctrl->inCountState()) {
+        Serial.println("[Main] Controller should stop counting capsules");
+        ctrl->setState(ControlState::IDLE);
+        ctrl->disableIRSensor();
+      }
 
       // Handle Homing Motor
       if (rxCmd.homeMotor) ctrl->home();
@@ -104,18 +112,25 @@ void menuHandlerTask(void * pvParameters) {
     Screen curr = menu.getCurrentScreen();
 
     // Handle Count Screen
-    if (curr == Screen::COUNT) {
+    if (menu.getStartCount()) {
+      Serial.println("[Main] Menu initiating Controller Counting");
       cmd.limit = menu.getBulkLimit();
-      cmd.enableIR = true;
+      cmd.startCount = true;
+      cmd.stopCount = false;
+      menu.resetStartCount();
+    } else if (menu.getStopCount()) {
+      cmd.limit = 0;
+      cmd.startCount = false;
+      cmd.stopCount = true;
     }
 
     // Handle Manual Screen
-    else if (curr == Screen::MANUAL) {
+    if (curr == Screen::MANUAL) {
       cmd.motorState = menu.getMotorState();
     }
 
     // Handle Home Screen
-    else if (curr == Screen::HOME) {
+    if (curr == Screen::HOME) {
       if (menu.getMotorState() == MotorState::SHOULD_HOME) {
         menu.setMotorState(MotorState::HOMING);
         cmd.homeMotor = true;

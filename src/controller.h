@@ -14,8 +14,8 @@ enum ControlState {
     HOME,
     COUNT,
     HOLD,
+    HOLDING,
     RELEASE,
-    MANUAL,
     ERROR
 };
 
@@ -32,14 +32,19 @@ class Controller {
         volatile ControlState _currentState;    // Current Control State
         int _bulkLimit;                         // Bulk Count Limit
         long _holdPos;                          // Hold Position
+        bool holding;                           // Holding Toggle
         long _releasePos;                       // Release Position
+        bool releasing;                         // Releasing Toggle
         unsigned long _holdTime;                // Hold Time
+        unsigned long _lastHoldMs;              // Tracker for Holding Time
         bool irsensorEnabled;                   // IR Sensor Enabled Toggle
-        bool motorForwards;
-        bool motorBackwards;
+        bool motorForwards;                     // Move Forwards Toggle
+        bool motorBackwards;                    // Move Backwards Toggle
     public:
         Controller();
         void begin(Settings&);
+        void setState(ControlState);
+        bool inCountState();
         void setLimit(int);
         int getCurrentCount();
         bool motorHomed();

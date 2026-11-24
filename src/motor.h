@@ -1,6 +1,9 @@
 #include "config.h"
 #include "FastAccelStepper.h"
 #include "prox-sensor.h"
+#include "Arduino.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 // Stepper Motor Definitions
 #define STEP_PIN 25         // Step Output Pin
@@ -31,12 +34,15 @@ class Motor {
         HomingState homingState;        // Homing State
         float _currentSpeed;            // Current Motor Speed
         int _currentPosition;           // Current Motor Position
+        bool _homingInitiated;          // Homing Initiated Toggle
     public:
         Motor();
         void begin(int);
+        HomingState getState();
         void moveForwards(int);
         void moveBackwards(int);
         void stop();
+        void moveTo(long);
         void home();
-        void update();
+        bool update();
 };

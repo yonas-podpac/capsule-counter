@@ -13,7 +13,10 @@ Controller::Controller():
     motor(m),
     _currentState(ControlState::IDLE),
     _bulkLimit(0),
+    holding(false),
+    releasing(false),
     irsensorEnabled(false),
+    _lastHoldMs(0),
     motorForwards(false),
     motorBackwards(false) {}
 
@@ -32,7 +35,27 @@ void Controller::begin(Settings& sett) {
     _holdTime = settings.getHoldTime();
     motor.begin(settings.getHallSensitivity());
     Serial.println("[Controller] Setup Complete");
+    Serial.printf("[Controller] Address at Begin: %p\n", this);
 }
+
+/**
+ * Controller Set State Function
+ * 
+ * Function used to set the controller state.
+ * 
+ * @param state new controller state
+ */
+void Controller::setState(ControlState state) { _currentState = state; }
+
+/**
+ * Controller  In Count State Function
+ * 
+ * Function used to check if controller is in one of the counting
+ * states, i.e. COUNT, HOLD, RELEASE
+ * 
+ * @return true if controller is in one of the three counting states
+ */
+bool Controller::inCountState() { return _currentState == ControlState::COUNT || _currentState == ControlState::HOLD || _currentState == ControlState::RELEASE; }
 
 /**
  * Controller Set Limit Function
@@ -96,6 +119,7 @@ void Controller::disableIRSensor() {
  */
 void Controller::moveForwards() {
     if (!motorForwards) {
+        Serial.printf("[Controller] Address at Forwards: %p\n", this);
         motor.moveForwards(200);
         motorForwards = true;
         motorBackwards = false;
@@ -109,6 +133,7 @@ void Controller::moveForwards() {
  */
 void Controller::moveBackwards() {
     if (!motorBackwards) {
+        Serial.printf("[Controller] Address at Backwards: %p\n", this);
         motor.moveBackwards(200);
         motorBackwards = true;
         motorForwards = false;
@@ -131,7 +156,11 @@ void Controller::stop() {
  * 
  * Function for homing the motor.
  */
-void Controller::home() { motor.home(); }
+void Controller::home() { 
+    Serial.printf("[Controller] Address at Homing: %p\n", this);
+    _currentState = ControlState::HOME;
+    motor.home();
+}
 
 /**
  * Controller Update Settings Function
@@ -150,10 +179,64 @@ void Controller::updateSettings() {/* TODO: implement */}
 bool Controller::update() {
     // Execute Update Functions
     sensor.update();
-    motor.update();
-    // bool busy = motor.isBusy();
-    // if (motorEnabled) motor.run();
+    bool running = motor.update();
+    int count = sensor.getCount();
+    unsigned long now;
+    
+    // Handle Control State Change
+    switch(_currentState) {
+        case ControlState::HOME:
+            // Check if Stepper Motor has been Homed
+            if (motor.getState() == HomingState::COMPLETE) {
+                Serial.println("[Controller] Stepper motor homed");
+                _currentState = ControlState::IDLE;
+            }
+            break;
+        case ControlState::COUNT:
+            // Check if Sensor Count has reached Limit
+            if (count == _bulkLimit) {
+                Serial.printf("[Controller] Sensor has counted %d capsules. Initiating holding sequence\n", count);
+                _currentState = ControlState::HOLD;
+            }
+            break;
+        case ControlState::HOLD:
+            // Move to Hold Position
+            if (!holding) {
+                Serial.printf("[Controller] Holding Capsules; Moving motor to %ld\n", _holdPos);
+                motor.moveTo(_holdPos);
+                holding = true;
+                // TODO: check if motor has reached position
+            }
+            if (!running) {
+                Serial.printf("[Controller] Motor has reached hold position %ld\n", _holdPos);
+                holding = false;
+                _lastHoldMs = 0;
+                _currentState = ControlState::HOLDING;
+            }
+            break;
+        case ControlState::HOLDING:
+            // Check if Motor has held capsules for required time
+            now = millis();
+            if (now - _lastHoldMs >= _holdTime) {
+                Serial.printf("[Controller] Motor has held capsules for %lums; Releasing Capsules\n", _holdTime);
+                sensor.reset();
+                _currentState = ControlState::RELEASE;
+            }
+            break;
+        case ControlState::RELEASE:
+            // Move to Release Position
+            if (!releasing) {
+                Serial.printf("[Controller] Releasing Capsules; Moving motor to %ld\n", _releasePos);
+                motor.moveTo(_releasePos);
+                releasing = true;
+            }
+            if (!running) {
+                Serial.printf("[Controller] Motor has reached release position %ld\n", _releasePos);
+                releasing = false;
+                _currentState = ControlState::COUNT;
+            }
+            break;
+    };
 
-    // return busy;
     return false;
 }
